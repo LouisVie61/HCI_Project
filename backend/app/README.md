@@ -1,2 +1,1 @@
-Complete merge from Tung_branch to Main_branch
-Change default branch from Master to Main
+Open PR from tung branch to main branch (default)
