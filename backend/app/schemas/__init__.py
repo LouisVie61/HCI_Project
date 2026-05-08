@@ -1,4 +1,4 @@
-from app.schemas.user import (
+from schemas.user import (
     UserBase,
     UserCreate,
     UserResponse,

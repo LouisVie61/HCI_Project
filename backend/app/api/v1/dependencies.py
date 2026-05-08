@@ -1,8 +1,8 @@
 from fastapi import Depends, HTTPException, status, Header
 from sqlalchemy.orm import Session
-from app.core.database import get_db
-from app.core.security import decode_token
-from app.repositories import UserRepository
+from core.database import get_db
+from core.security import decode_token
+from repositories import UserRepository
 from uuid import UUID
 from typing import Optional
 
