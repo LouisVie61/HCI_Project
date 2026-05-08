@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
-from app.models import User
-from app.core.security import hash_password, verify_password
+from models import User
+from core.security import hash_password, verify_password
 from uuid import UUID
 
 

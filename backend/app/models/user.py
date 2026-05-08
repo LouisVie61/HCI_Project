@@ -2,7 +2,7 @@ from sqlalchemy import Column, String, DateTime, Enum
 from sqlalchemy.dialects.postgresql import UUID
 import uuid
 from datetime import datetime
-from app.core.database import Base
+from core.database import Base
 
 
 class User(Base):

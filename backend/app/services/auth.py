@@ -1,9 +1,9 @@
 from sqlalchemy.orm import Session
 from datetime import timedelta
-from app.schemas import UserCreate, UserLogin, TokenResponse, UserResponse
-from app.repositories import UserRepository
-from app.core.security import create_access_token
-from app.core.config import settings
+from schemas import UserCreate, UserLogin, TokenResponse, UserResponse
+from repositories import UserRepository
+from core.security import create_access_token
+from core.config import settings
 
 
 class AuthService:
@@ -58,7 +58,7 @@ class AuthService:
 
     def get_current_user(self, token: str) -> UserResponse:
         """Get current user from token"""
-        from app.core.security import decode_token
+        from core.security import decode_token
 
         payload = decode_token(token)
         if not payload:

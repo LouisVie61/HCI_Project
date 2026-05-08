@@ -1,10 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.core.config import settings
-from app.core.database import Base, engine
-from app.api.v1.router import router
+from core.config import settings
+from core.database import Base, engine
+from api.v1.router import router
 
 # Create tables
+print(settings.DATABASE_URL)
 Base.metadata.create_all(bind=engine)
 
 # Create app

@@ -1,0 +1,17 @@
+# Virtual Environment
+venv/
+ENV/
+env/
+
+# Python bytecode (rác tạo ra khi chạy code)
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Environment variables (CỰC KỲ QUAN TRỌNG: để không lộ pass database)
+.env
+
+# OS files
+.DS_Store
+Thumbs.db
