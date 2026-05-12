@@ -5,7 +5,7 @@ from core.database import Base, engine
 from api.v1.router import router
 
 # Create tables
-print(settings.DATABASE_URL)
+
 Base.metadata.create_all(bind=engine)
 
 # Create app
@@ -24,7 +24,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
+print(settings.DATABASE_URL)
 # Routes
 app.include_router(router)
 

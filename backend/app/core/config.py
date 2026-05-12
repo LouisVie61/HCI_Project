@@ -1,6 +1,6 @@
 from pydantic_settings import BaseSettings
 from functools import lru_cache
-
+from pathlib import Path
 
 class Settings(BaseSettings):
     APP_NAME: str = "Sign Language Support System"
@@ -20,7 +20,7 @@ class Settings(BaseSettings):
     ]
 
     class Config:
-        env_file = ".env"
+        env_file = str(Path(__file__).parent.parent.parent / ".env")
         case_sensitive = True
 
 

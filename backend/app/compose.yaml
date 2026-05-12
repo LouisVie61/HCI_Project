@@ -4,9 +4,9 @@ services:
     container_name: hci-postgres-db
     restart: unless-stopped
     environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: root123456
-      POSTGRES_DB: appdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Phong416ct5x2
+      POSTGRES_DB: hci_db
     ports:
       - "5433:5432"
     volumes:
