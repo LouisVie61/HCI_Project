@@ -1,0 +1,1 @@
+# Prompts module - AI/ML prompt templates
