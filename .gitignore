@@ -2,6 +2,7 @@
 .env
 .env.local
 .env.*.local
+.env.production.local
 
 # IDE & Editor
 .vscode/
@@ -16,26 +17,32 @@
 Thumbs.db
 
 # Backend - Python
-backend/__pycache__/
-backend/*.pyc
-backend/*.pyo
-backend/*.pyd
-backend/*.egg-info/
-backend/venv/
-backend/.Python
-backend/build/
-backend/develop-eggs/
-backend/dist/
-backend/.pytest_cache/
-backend/.coverage
-backend/htmlcov/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+*.egg
+venv/
+env/
+.Python
+build/
+develop-eggs/
+dist/
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+*.so
 
 # Frontend - Node
-frontend/node_modules/
-frontend/dist/
-frontend/.vite/
-frontend/coverage/
-frontend/*.tsbuildinfo
+node_modules/
+dist/
+.vite/
+coverage/
+*.tsbuildinfo
+.turbo/
+.next/
 
 # Logs
 *.log
