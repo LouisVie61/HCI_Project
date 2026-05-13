@@ -1,6 +1,6 @@
 from pydantic_settings import BaseSettings
 from functools import lru_cache
-import os
+
 
 
 class Settings(BaseSettings):
@@ -9,23 +9,15 @@ class Settings(BaseSettings):
     # App
     APP_NAME: str = "Sign Language Support System"
     APP_VERSION: str = "0.0.1"
-    DEBUG: bool = os.getenv("DEBUG", "True").lower() == "true"
+    
+    DEBUG: bool = True
 
-    # Database - Read from .env file
-    DATABASE_URL: str = os.getenv(
-        "DATABASE_URL",
-        "postgresql://hci_user:hci_password@localhost:5432/hci_db"
-    )
+    DATABASE_URL: str
 
-    # Security
-    SECRET_KEY: str = os.getenv(
-        "SECRET_KEY",
-        "your-secret-key-change-in-production"
-    )
-    ALGORITHM: str = os.getenv("ALGORITHM", "HS256")
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
+    SECRET_KEY: str
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
 
-    # CORS
     CORS_ORIGINS: list = [
         "http://localhost:5173",
         "http://localhost:3000",
