@@ -22,8 +22,8 @@ export const LoginForm = ({ onSuccess }: LoginFormProps) => {
       return;
     }
 
-    if (!validators.password(password)) {
-      setValidationError('Mật khẩu phải có ít nhất 6 ký tự');
+    if (!validators.isNotEmpty(password)) {
+      setValidationError('Vui lòng nhập mật khẩu');
       return;
     }
 

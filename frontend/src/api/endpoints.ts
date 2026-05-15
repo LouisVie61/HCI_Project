@@ -1,3 +1,4 @@
+import type { UserUpdate } from '../types';
 import api from './client';
 
 export const authApi = {
@@ -12,6 +13,15 @@ export const authApi = {
 
   getCurrentUser: () =>
     api.get('/api/v1/auth/me'),
+
+  updateProfile: (profile: UserUpdate) =>
+    api.put('/api/v1/auth/me', profile),
+
+  uploadAvatar: (avatar: File) => {
+    const formData = new FormData();
+    formData.append('avatar', avatar);
+    return api.postForm('/api/v1/auth/me/avatar', formData);
+  },
 };
 
 export const lessonApi = {
@@ -30,7 +40,7 @@ export const translationApi = {
   textToSign: (text: string) =>
     api.post('/api/v1/translation/text-to-sign', { text }),
 
-  signToText: (keypoints: any) =>
+  signToText: (keypoints: unknown) =>
     api.post('/api/v1/translation/sign-to-text', { keypoints }),
 };
 

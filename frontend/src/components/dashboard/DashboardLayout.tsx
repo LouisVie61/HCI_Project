@@ -1,7 +1,14 @@
 import { BookOpenCheck, LogOut, Sparkles, UserCircle } from 'lucide-react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { API_BASE_URL } from '../../api/client';
 import { useAuth } from '../../hooks';
 import { dashboardNavItems } from './dashboardNav';
+
+const getAvatarSrc = (avatarUrl?: string | null) => {
+  if (!avatarUrl) return '';
+  if (avatarUrl.startsWith('http')) return avatarUrl;
+  return `${API_BASE_URL}${avatarUrl}`;
+};
 
 export const DashboardLayout = () => {
   const { user, logout } = useAuth();
@@ -14,7 +21,8 @@ export const DashboardLayout = () => {
       .find((item) => location.pathname === item.path || location.pathname.startsWith(`${item.path}/`)) ||
     dashboardNavItems[0];
 
-  const userName = user?.email?.split('@')[0] || 'bạn';
+  const displayName = user?.full_name?.trim() || 'bạn';
+  const avatarSrc = getAvatarSrc(user?.avatar_url);
 
   const handleLogout = async () => {
     await logout();
@@ -69,17 +77,21 @@ export const DashboardLayout = () => {
             <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
               <div className="min-w-0">
                 <p className="text-sm font-medium text-emerald-700">{activeItem.label}</p>
-                <h1 className="truncate text-2xl font-semibold text-slate-950">Xin chào, {userName}</h1>
+                <h1 className="truncate text-2xl font-semibold text-slate-950">Xin chào, {displayName}</h1>
               </div>
 
               <div className="flex items-center gap-3">
                 <div className="hidden items-center gap-3 rounded-2xl border border-slate-200 bg-white px-3 py-2 md:flex">
-                  <div className="flex size-9 items-center justify-center rounded-xl bg-slate-950 text-white">
-                    <UserCircle className="size-5" />
+                  <div className="flex size-9 items-center justify-center overflow-hidden rounded-xl bg-slate-950 text-white">
+                    {avatarSrc ? (
+                      <img src={avatarSrc} alt={displayName} className="h-full w-full object-cover" />
+                    ) : (
+                      <UserCircle className="size-5" />
+                    )}
                   </div>
                   <div className="max-w-44">
-                    <p className="truncate text-sm font-semibold text-slate-900">{user?.email}</p>
-                    <p className="text-xs text-slate-500">Learner</p>
+                    <p className="truncate text-sm font-semibold text-slate-900">{displayName}</p>
+                    <p className="truncate text-xs text-slate-500">{user?.email}</p>
                   </div>
                 </div>
                 <button

@@ -1,9 +1,19 @@
 // User types
 export interface User {
   id: string;
+  full_name?: string | null;
   email: string;
+  phone_number?: string | null;
+  avatar_url?: string | null;
   role: 'user' | 'admin';
   created_at: string;
+}
+
+export interface UserUpdate {
+  full_name?: string | null;
+  email?: string | null;
+  phone_number?: string | null;
+  avatar_url?: string | null;
 }
 
 export interface AuthResponse {

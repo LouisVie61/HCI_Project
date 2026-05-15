@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from datetime import timedelta
-from schemas import UserCreate, UserLogin, TokenResponse, UserResponse
+from schemas import UserCreate, UserLogin, UserUpdate, TokenResponse, UserResponse
 from repositories import UserRepository
 from core.security import create_access_token
 from core.config import settings
@@ -73,3 +73,24 @@ class AuthService:
             raise ValueError("User not found")
 
         return UserResponse.from_orm(user)
+
+    def update_profile(self, current_user, user_update: UserUpdate) -> UserResponse:
+        """Update current user's profile"""
+        if user_update.email:
+            existing_user = self.user_repo.get_by_email(user_update.email)
+            if existing_user and existing_user.id != current_user.id:
+                raise ValueError("Email already registered")
+
+        if user_update.phone_number:
+            existing_user = self.user_repo.get_by_phone_number(user_update.phone_number)
+            if existing_user and existing_user.id != current_user.id:
+                raise ValueError("Phone number already registered")
+
+        updated_user = self.user_repo.update_profile(current_user, user_update)
+        return UserResponse.from_orm(updated_user)
+
+    def update_avatar(self, current_user, avatar_url: str) -> UserResponse:
+        """Update current user's avatar URL"""
+        user_update = UserUpdate(avatar_url=avatar_url)
+        updated_user = self.user_repo.update_profile(current_user, user_update)
+        return UserResponse.from_orm(updated_user)

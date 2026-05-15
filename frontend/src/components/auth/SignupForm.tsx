@@ -26,7 +26,7 @@ export const SignupForm = ({ onSwitchToLogin }: SignupFormProps) => {
     }
 
     if (!validators.password(password)) {
-      setValidationError('Mật khẩu phải có ít nhất 6 ký tự');
+      setValidationError('Mật khẩu phải có ít nhất 8 ký tự, gồm chữ hoa, chữ thường và số');
       return;
     }
 
@@ -102,7 +102,7 @@ export const SignupForm = ({ onSwitchToLogin }: SignupFormProps) => {
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Tối thiểu 6 ký tự"
+            placeholder="8+ ký tự, có chữ hoa, chữ thường và số"
             disabled={loading}
             className="h-[52px] w-full rounded-2xl border border-slate-200 bg-slate-50 px-12 text-sm text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10 disabled:cursor-not-allowed disabled:opacity-70"
           />

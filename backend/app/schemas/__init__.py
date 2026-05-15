@@ -1,6 +1,7 @@
 from schemas.user import (
     UserBase,
     UserCreate,
+    UserUpdate,
     UserResponse,
     UserLogin,
     TokenResponse,
@@ -10,6 +11,7 @@ from schemas.user import (
 __all__ = [
     "UserBase",
     "UserCreate",
+    "UserUpdate",
     "UserResponse",
     "UserLogin",
     "TokenResponse",
