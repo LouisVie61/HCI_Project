@@ -3,6 +3,7 @@
 .env.local
 .env.*.local
 .env.*
+.env.production.local
 
 # IDE & Editor
 .vscode/
@@ -64,6 +65,32 @@ frontend/.env.local
 frontend/.env.*.local
 frontend/build/
 frontend/out/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+*.egg
+venv/
+env/
+.Python
+build/
+develop-eggs/
+dist/
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+*.so
+
+# Frontend - Node
+node_modules/
+dist/
+.vite/
+coverage/
+*.tsbuildinfo
+.turbo/
+.next/
 
 # Logs
 logs/
