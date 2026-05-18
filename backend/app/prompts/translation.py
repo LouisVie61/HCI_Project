@@ -1,10 +1,17 @@
-TRANSLATION_PROMPT_TEMPLATE = """Convert the input sentence into sign-language gloss tokens.
-Return only uppercase glosses separated by commas.
-Do not explain.
+from langchain_core.prompts import PromptTemplate
 
-Input: {text}
-Glosses:"""
+# Prompt cho phân tích ngữ nghĩa và tái cấu trúc cú pháp
+TRANSLATION_PROMPT_TEMPLATE = """Bạn là chuyên gia dịch từ ngôn ngữ tự nhiên sang ngôn ngữ ký hiệu.
 
+Quy trình xử lý:
+1. Phân tích ngữ nghĩa: Hiểu ý nghĩa sâu của câu
+2. Tái cấu trúc cú pháp: Chuyển thành dạng các từ gốc (glosses)
+3. Trả về danh sách: Chỉ viết hoa các từ gốc, ngăn cách bằng dấu phẩy
 
-def build_translation_prompt(text: str) -> str:
-    return TRANSLATION_PROMPT_TEMPLATE.format(text=text)
+Đầu vào: {text}
+Đầu ra (chỉ danh sách glosses viết hoa, không giải thích):"""
+
+translation_prompt = PromptTemplate(
+    template=TRANSLATION_PROMPT_TEMPLATE, 
+    input_variables=["text"]
+)

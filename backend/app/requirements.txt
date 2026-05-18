@@ -10,5 +10,7 @@ bcrypt==3.2.2
 passlib[bcrypt]==1.7.4
 python-multipart==0.0.6
 
-# Gemini API client
-google-generativeai==0.7.2
+# LangChain - AI/ML Framework
+langchain>=0.1.0
+langchain-core>=0.1.0
+langchain-google-genai>=0.0.1
