@@ -14,6 +14,12 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 10080 
 
     GOOGLE_API_KEY: str
+    GEMINI_MODEL: str = "gemini-2.5-flash-lite"
+    GEMINI_TIMEOUT_SECONDS: int = 4
+    GEMINI_FREE_TIER_RPM_LIMIT: int = 10
+    GEMINI_FREE_TIER_RPD_LIMIT: int = 900
+    GEMINI_MAX_INPUT_CHARS: int = 500
+    GEMINI_MAX_OUTPUT_TOKENS: int = 96
 
     CORS_ORIGINS: list = [
         "http://localhost:5173",
