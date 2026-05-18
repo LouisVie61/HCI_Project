@@ -2,26 +2,42 @@
 .env
 .env.local
 .env.*.local
+.env.*
 
 # IDE & Editor
 .vscode/
 .idea/
 *.swp
 *.swo
-*.sublime-project
-*.sublime-workspace
+*.swn
+*~
+.sublime-project
+.sublime-workspace
+.project
+.pydevproject
+.settings/
 
-# OS
+# OS & Temporary
 .DS_Store
+.AppleDouble
+.LSOverride
 Thumbs.db
+desktop.ini
+*.tmp
+*.bak
+*.backup
 
 # Backend - Python
 backend/__pycache__/
+backend/**/__pycache__/
 backend/*.pyc
 backend/*.pyo
 backend/*.pyd
 backend/*.egg-info/
 backend/venv/
+backend/.venv/
+backend/ENV/
+backend/env/
 backend/.Python
 backend/build/
 backend/develop-eggs/
@@ -29,6 +45,14 @@ backend/dist/
 backend/.pytest_cache/
 backend/.coverage
 backend/htmlcov/
+backend/.tox/
+backend/coverage.xml
+backend/.hypothesis/
+backend/logs/
+backend/*.log
+backend/*.db
+backend/*.sqlite
+backend/*.sqlite3
 
 # Frontend - Node
 frontend/node_modules/
@@ -36,13 +60,30 @@ frontend/dist/
 frontend/.vite/
 frontend/coverage/
 frontend/*.tsbuildinfo
+frontend/.env.local
+frontend/.env.*.local
+frontend/build/
+frontend/out/
 
 # Logs
+logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
 
-# Misc
+# Database & Cache
 *.sql
+*.db
+*.sqlite
+*.sqlite3
 .cache/
+db/
+data/
+
+# Dependencies (lock files - optional)
+# Uncomment if you want to ignore lock files
+# backend/poetry.lock
+# frontend/yarn.lock
