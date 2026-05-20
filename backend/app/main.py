@@ -1,18 +1,39 @@
 import logging
 from contextlib import asynccontextmanager
+from sqlalchemy import inspect, text
 from core.logging_config import setup_logging
 setup_logging()
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from core.config import settings
 from core.database import Base, engine
+import models  # noqa: F401
 from api.v1.router import router
 from middleware.LoggingMiddleware import LoggingMiddleware
+from services.chat_attachments import ensure_attachment_dirs
 from services.translation import get_translation_service
 
 logger = logging.getLogger(__name__)
 logger.info(f"Database: {settings.DATABASE_URL}")
 Base.metadata.create_all(bind=engine)
+
+
+def ensure_chat_schema() -> None:
+    ensure_attachment_dirs()
+    inspector = inspect(engine)
+    if "chat_messages" not in inspector.get_table_names():
+        return
+
+    column_names = {column["name"] for column in inspector.get_columns("chat_messages")}
+    if "attachments_json" in column_names:
+        return
+
+    with engine.begin() as connection:
+        connection.execute(text("ALTER TABLE chat_messages ADD COLUMN attachments_json TEXT"))
+
+
+ensure_chat_schema()
 
 
 @asynccontextmanager
@@ -54,10 +75,13 @@ app.add_middleware(LoggingMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
+    allow_origin_regex=settings.CORS_ORIGIN_REGEX,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.mount("/uploads", StaticFiles(directory=str(settings.UPLOADS_DIR)), name="uploads")
 
 app.include_router(router)
 
