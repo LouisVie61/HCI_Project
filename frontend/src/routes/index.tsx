@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Login } from '../pages/Login';
 import { Dashboard } from '../pages/Dashboard';
+import { MemoryGame } from '../pages/MemoryGame';
 import { ProtectedRoute } from './ProtectedRoute';
 
 export const AppRoutes = () => {
@@ -16,6 +17,14 @@ export const AppRoutes = () => {
           element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/flashcards/memory"
+          element={
+            <ProtectedRoute>
+              <MemoryGame />
             </ProtectedRoute>
           }
         />

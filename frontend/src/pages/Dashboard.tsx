@@ -1,5 +1,5 @@
-import { useAuth } from '../hooks';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks';
 
 export const Dashboard = () => {
   const { user, logout } = useAuth();
@@ -12,7 +12,6 @@ export const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
       <div className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
           <h1 className="text-2xl font-bold text-gray-900">🤟 Sign Language</h1>
@@ -25,15 +24,13 @@ export const Dashboard = () => {
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <main className="max-w-7xl mx-auto px-4 py-8">
         <div className="bg-white rounded-lg shadow p-8">
           <h2 className="text-xl font-bold text-gray-900 mb-4">
             Xin chào, {user?.email} 👋
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
-            {/* Feature Cards */}
             <FeatureCard
               icon="📝"
               title="Bài giảng"
@@ -43,6 +40,7 @@ export const Dashboard = () => {
               icon="🎮"
               title="Flashcard"
               description="Luyện tập bằng trò chơi flashcard"
+              onClick={() => navigate('/flashcards/memory')}
             />
             <FeatureCard
               icon="🎥"
@@ -66,7 +64,7 @@ export const Dashboard = () => {
             />
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 };
@@ -75,12 +73,21 @@ interface FeatureCardProps {
   icon: string;
   title: string;
   description: string;
+  onClick?: () => void;
 }
 
-const FeatureCard = ({ icon, title, description }: FeatureCardProps) => (
-  <div className="bg-gray-50 rounded-lg p-6 hover:shadow-md transition-shadow">
-    <div className="text-4xl mb-3">{icon}</div>
-    <h3 className="font-semibold text-gray-900 mb-2">{title}</h3>
-    <p className="text-gray-600 text-sm">{description}</p>
-  </div>
-);
+const FeatureCard = ({ icon, title, description, onClick }: FeatureCardProps) => {
+  const CardElement = onClick ? 'button' : 'div';
+
+  return (
+    <CardElement
+      type={onClick ? 'button' : undefined}
+      onClick={onClick}
+      className="w-full text-left bg-gray-50 rounded-lg p-6 hover:shadow-md transition-shadow focus:outline-none focus:ring-2 focus:ring-blue-500"
+    >
+      <div className="text-4xl mb-3">{icon}</div>
+      <h3 className="font-semibold text-gray-900 mb-2">{title}</h3>
+      <p className="text-gray-600 text-sm">{description}</p>
+    </CardElement>
+  );
+};
