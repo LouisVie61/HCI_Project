@@ -1,7 +1,6 @@
 # seed_lessons.py
-# Chạy: python seed_lessons.py (từ thư mục app/)
-# cd cd D:\2026\HCI_Project\backend\app\repositories
-# chạy python seed_lessons.py để tạo dữ liệu mẫu cho bảng lessons
+# cd cd D:\2026\HCI_Project\backend\app
+# chạy python -m repositories.seed_lessons để tạo dữ liệu mẫu cho bảng lessons
 
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
