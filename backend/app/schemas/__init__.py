@@ -6,6 +6,16 @@ from schemas.user import (
     TokenResponse,
     ErrorResponse,
 )
+from schemas.chat import (
+    ChatAttachmentResponse,
+    ChatConversationDetail,
+    ChatConversationMessageResponse,
+    ChatConversationSummary,
+    ChatHistoryMessage,
+    ChatRequest,
+    ExplainSignRequest,
+    ChatMessageResponse,
+)
 
 __all__ = [
     "UserBase",
@@ -14,4 +24,12 @@ __all__ = [
     "UserLogin",
     "TokenResponse",
     "ErrorResponse",
+    "ChatAttachmentResponse",
+    "ChatConversationDetail",
+    "ChatConversationMessageResponse",
+    "ChatConversationSummary",
+    "ChatHistoryMessage",
+    "ChatRequest",
+    "ExplainSignRequest",
+    "ChatMessageResponse",
 ]

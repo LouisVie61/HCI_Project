@@ -31,6 +31,7 @@ desktop.ini
 # Backend - Python
 backend/__pycache__/
 backend/**/__pycache__/
+backend/app/uploads/
 backend/*.pyc
 backend/*.pyo
 backend/*.pyd
