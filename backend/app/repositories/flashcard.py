@@ -51,7 +51,7 @@ class FlashcardRepository:
         if score:
             return score
 
-        score = UserFlashcardScore(user_id=user_id)
+        score = UserFlashcardScore(user_id=user_id, total_score=0, attempts=0)
         self.db.add(score)
         self.db.commit()
         self.db.refresh(score)
