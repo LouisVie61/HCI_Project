@@ -2,7 +2,7 @@
 export interface User {
   id: string;
   email: string;
-  role: 'user' | 'admin';
+  role: "user" | "admin";
   created_at: string;
 }
 
@@ -47,11 +47,63 @@ export interface TranslationResponse {
 }
 
 // Chat types
+export type ChatAttachmentKind = "image" | "video" | "text" | "file";
+
+export interface ChatAttachment {
+  id: string;
+  name: string;
+  kind: ChatAttachmentKind;
+  media_type: string;
+  size_bytes: number;
+  url: string | null;
+  text_excerpt?: string | null;
+}
+
+export interface ComposerAttachment {
+  id: string;
+  file: File;
+  kind: ChatAttachmentKind;
+  preview_url: string | null;
+}
+
 export interface ChatMessage {
   id: string;
   content: string;
-  sender: 'user' | 'ai';
+  sender: "user" | "ai";
   timestamp: string;
+  attachments: ChatAttachment[];
+}
+
+export interface ChatHistoryMessage {
+  role: "user" | "assistant";
+  content: string;
+}
+
+export interface ChatRequest {
+  message: string;
+  conversation_id?: string | null;
+  history: ChatHistoryMessage[];
+}
+
+export interface ChatMessageResponse {
+  id: string;
+  conversation_id: string;
+  content: string;
+  sender: "ai";
+  timestamp: string;
+  attachments: ChatAttachment[];
+}
+
+export interface ChatConversationSummary {
+  id: string;
+  title: string;
+  created_at: string;
+  updated_at: string;
+  last_message_preview: string | null;
+}
+
+export interface ChatConversationDetail extends ChatConversationSummary {
+  messages: ChatMessage[];
 }
 
 export interface ChatResponse {

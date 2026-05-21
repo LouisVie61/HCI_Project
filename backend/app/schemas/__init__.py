@@ -7,6 +7,16 @@ from schemas.user import (
     ErrorResponse,
 )
 from schemas.flashcard import FlashcardResponse, ScoreCreate, UserScoreResponse
+from schemas.chat import (
+    ChatAttachmentResponse,
+    ChatConversationDetail,
+    ChatConversationMessageResponse,
+    ChatConversationSummary,
+    ChatHistoryMessage,
+    ChatRequest,
+    ExplainSignRequest,
+    ChatMessageResponse,
+)
 
 __all__ = [
     "UserBase",
@@ -18,4 +28,12 @@ __all__ = [
     "FlashcardResponse",
     "ScoreCreate",
     "UserScoreResponse",
+    "ChatAttachmentResponse",
+    "ChatConversationDetail",
+    "ChatConversationMessageResponse",
+    "ChatConversationSummary",
+    "ChatHistoryMessage",
+    "ChatRequest",
+    "ExplainSignRequest",
+    "ChatMessageResponse",
 ]
