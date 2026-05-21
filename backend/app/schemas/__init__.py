@@ -7,6 +7,10 @@ from schemas.user import (
     ErrorResponse,
 )
 
+from schemas.lesson import (
+    LessonCreate, LessonResponse, LessonDetailResponse,
+    ProgressUpdate, ProgressResponse
+)
 __all__ = [
     "UserBase",
     "UserCreate",
@@ -14,4 +18,9 @@ __all__ = [
     "UserLogin",
     "TokenResponse",
     "ErrorResponse",
+    "LessonCreate",
+    "LessonResponse",
+    "LessonDetailResponse",
+    "ProgressUpdate",
+    "ProgressResponse",
 ]
