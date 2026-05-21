@@ -1,3 +1,4 @@
 from repositories.user import UserRepository
+from repositories.flashcard import FlashcardRepository
 
-__all__ = ["UserRepository"]
+__all__ = ["UserRepository", "FlashcardRepository"]

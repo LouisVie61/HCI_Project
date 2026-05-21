@@ -6,6 +6,7 @@ from schemas.user import (
     TokenResponse,
     ErrorResponse,
 )
+from schemas.flashcard import FlashcardResponse, ScoreCreate, UserScoreResponse
 
 __all__ = [
     "UserBase",
@@ -14,4 +15,7 @@ __all__ = [
     "UserLogin",
     "TokenResponse",
     "ErrorResponse",
+    "FlashcardResponse",
+    "ScoreCreate",
+    "UserScoreResponse",
 ]

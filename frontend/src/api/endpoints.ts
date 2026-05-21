@@ -1,4 +1,5 @@
 import api from './client';
+import type { Flashcard, UserScore } from '../types';
 
 export const authApi = {
   login: (email: string, password: string) =>
@@ -36,13 +37,13 @@ export const translationApi = {
 
 export const flashcardApi = {
   getRandomCards: (limit: number = 10) =>
-    api.get(`/api/v1/flashcards?limit=${limit}`),
+    api.get<Flashcard[]>(`/api/v1/flashcards?limit=${limit}`),
 
   getScore: () =>
-    api.get('/api/v1/flashcards/score'),
+    api.get<UserScore>('/api/v1/flashcards/score'),
 
   recordScore: (score: number, total: number) =>
-    api.post('/api/v1/flashcards/score', { score, total }),
+    api.post<UserScore>('/api/v1/flashcards/score', { score, total }),
 };
 
 export const chatApi = {

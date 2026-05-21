@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { flashcardApi } from '../api';
 import { useFlashcards } from '../hooks';
 import type { Flashcard } from '../types';
 
@@ -63,7 +64,17 @@ const buildMemoryCards = (flashcards: Flashcard[]) =>
 
 export const MemoryGame = () => {
   const navigate = useNavigate();
-  const { cards, loading, error, refetch } = useFlashcards(6);
+  const {
+    cards,
+    loading,
+    error,
+    score,
+    userScore,
+    recordAnswer,
+    refetch,
+  } = useFlashcards(6);
+  const submittedMatchCountRef = useRef(0);
+  const [savedTotalScore, setSavedTotalScore] = useState(0);
   const sourceCards = useMemo(
     () => (cards.length > 0 ? cards.slice(0, 6) : sampleCards),
     [cards]
@@ -79,11 +90,16 @@ export const MemoryGame = () => {
   const totalPairs = memoryCards.length / 2;
   const isCompleted = totalPairs > 0 && matchedPairs === totalPairs;
 
+  useEffect(() => {
+    setSavedTotalScore(userScore?.total_score ?? 0);
+  }, [userScore]);
+
   const resetGame = () => {
     setMemoryCards(buildMemoryCards(sourceCards));
     setSelectedIds([]);
     setMatchedIds([]);
     setMoves(0);
+    submittedMatchCountRef.current = 0;
   };
 
   useEffect(() => {
@@ -91,6 +107,7 @@ export const MemoryGame = () => {
     setSelectedIds([]);
     setMatchedIds([]);
     setMoves(0);
+    submittedMatchCountRef.current = 0;
   }, [sourceCards]);
 
   useEffect(() => {
@@ -110,6 +127,7 @@ export const MemoryGame = () => {
         firstId,
         secondId,
       ]);
+      recordAnswer(true);
       setSelectedIds([]);
       return;
     }
@@ -132,6 +150,19 @@ export const MemoryGame = () => {
 
     setSelectedIds((currentSelectedIds) => [...currentSelectedIds, card.id]);
   };
+
+  useEffect(() => {
+    if (!isCompleted || submittedMatchCountRef.current === matchedPairs) {
+      return;
+    }
+
+    submittedMatchCountRef.current = matchedPairs;
+    flashcardApi.recordScore(matchedPairs, totalPairs).then((result) => {
+      if (result.data) {
+        setSavedTotalScore(result.data.total_score);
+      }
+    });
+  }, [isCompleted, matchedPairs, totalPairs]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -172,6 +203,14 @@ export const MemoryGame = () => {
                 <strong className="ml-2 text-gray-900">
                   {matchedPairs}/{totalPairs}
                 </strong>
+              </div>
+              <div className="rounded-lg bg-gray-100 px-4 py-2">
+                <span className="text-sm text-gray-600">Điểm ván</span>
+                <strong className="ml-2 text-gray-900">{score}</strong>
+              </div>
+              <div className="rounded-lg bg-gray-100 px-4 py-2">
+                <span className="text-sm text-gray-600">Tổng DB</span>
+                <strong className="ml-2 text-gray-900">{savedTotalScore}</strong>
               </div>
             </div>
           </div>
