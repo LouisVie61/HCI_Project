@@ -1,5 +1,5 @@
 import api, { API_BASE_URL, getStoredToken, readErrorMessage } from "./client";
-import { ChatConversationSummary, ChatHistoryMessage, ChatMessageResponse } from "../types";
+import type { ChatConversationSummary, ChatHistoryMessage, ChatMessageResponse, Flashcard, UserScore } from "../types";
 
 type ChatStreamPayload = { type: "conversation"; conversation: ChatConversationSummary } | { type: "delta"; delta: string } | { type: "done"; message: ChatMessageResponse; conversation: ChatConversationSummary } | { type: "error"; detail: string };
 
@@ -146,11 +146,11 @@ export const translationApi = {
 };
 
 export const flashcardApi = {
-  getRandomCards: (limit: number = 10) => api.get(`/api/v1/flashcards?limit=${limit}`),
+  getRandomCards: (limit: number = 10) => api.get<Flashcard[]>(`/api/v1/flashcards?limit=${limit}`),
 
-  getScore: () => api.get("/api/v1/flashcards/score"),
+  getScore: () => api.get<UserScore>("/api/v1/flashcards/score"),
 
-  recordScore: (score: number, total: number) => api.post("/api/v1/flashcards/score", { score, total }),
+  recordScore: (score: number, total: number) => api.post<UserScore>("/api/v1/flashcards/score", { score, total }),
 };
 
 export const chatApi = {

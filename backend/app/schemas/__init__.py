@@ -6,6 +6,7 @@ from schemas.user import (
     TokenResponse,
     ErrorResponse,
 )
+from schemas.flashcard import FlashcardResponse, ScoreCreate, UserScoreResponse
 from schemas.chat import (
     ChatAttachmentResponse,
     ChatConversationDetail,
@@ -24,6 +25,9 @@ __all__ = [
     "UserLogin",
     "TokenResponse",
     "ErrorResponse",
+    "FlashcardResponse",
+    "ScoreCreate",
+    "UserScoreResponse",
     "ChatAttachmentResponse",
     "ChatConversationDetail",
     "ChatConversationMessageResponse",
