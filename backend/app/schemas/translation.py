@@ -1,12 +1,15 @@
 from pydantic import BaseModel
-from typing import List
+
 
 class TranslationRequest(BaseModel):
     text: str
+    source_language: str | None = None
 
-class GlossItem(BaseModel):
-    gloss: str
 
-class TranslationResponse(BaseModel):
-    """Response format theo chuẩn của hệ thống ngôn ngữ ký hiệu"""
-    sequence: List[GlossItem]
+class EnglishTranslationResponse(BaseModel):
+    original: str
+    translated_text: str
+    source_language: str = "auto"
+    used_fallback: bool = False
+    error: str | None = None
+

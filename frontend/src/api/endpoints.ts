@@ -1,5 +1,5 @@
 import api, { API_BASE_URL, getStoredToken, readErrorMessage } from "./client";
-import type { UserUpdate, ChatConversationSummary, ChatHistoryMessage, ChatMessageResponse, Flashcard, UserScore } from "../types";
+import type { UserUpdate, ChatConversationSummary, ChatHistoryMessage, ChatMessageResponse, EnglishTranslationResponse, Flashcard, UserScore } from "../types";
 
 type ChatStreamPayload = { type: "conversation"; conversation: ChatConversationSummary } | { type: "delta"; delta: string } | { type: "done"; message: ChatMessageResponse; conversation: ChatConversationSummary } | { type: "error"; detail: string };
 
@@ -150,7 +150,8 @@ export const lessonApi = {
 };
 
 export const translationApi = {
-  textToSign: (text: string) => api.post("/api/v1/translation/text-to-sign", { text }),
+  toEnglish: (text: string, sourceLanguage?: string) =>
+    api.post<EnglishTranslationResponse>("/api/v1/translation/to-english", { text, source_language: sourceLanguage }),
 
   signToText: (keypoints: unknown) =>
     api.post('/api/v1/translation/sign-to-text', { keypoints }),

@@ -1,16 +1,26 @@
 import asyncio
+import json
 import logging
 import re
 import time
 from collections import deque
 from datetime import date
+from urllib import parse, request
 
 import google.generativeai as genai
 
 from core.config import settings
-from prompts.translation import build_translation_prompt
 
 logger = logging.getLogger(__name__)
+
+VIETNAMESE_PATTERN = re.compile(
+    r"[ăâđêôơưáàảãạấầẩẫậắằẳẵặéèẻẽẹếềểễệíìỉĩịóòỏõọốồổỗộớờởỡợúùủũụứừửữựýỳỷỹỵ]",
+    re.IGNORECASE,
+)
+VIETNAMESE_WORD_PATTERN = re.compile(
+    r"\b(xin|chao|chào|cam|cảm|on|ơn|toi|tôi|ban|bạn|khoe|khỏe|hom|hôm|nay|yeu|yêu)\b",
+    re.IGNORECASE,
+)
 
 
 class FreeTierRateLimiter:
@@ -53,62 +63,150 @@ class TranslationService:
             rpd_limit=settings.GEMINI_FREE_TIER_RPD_LIMIT,
         )
 
-    async def translate(self, text: str) -> list[dict]:
+    async def translate_to_english(
+        self,
+        text: str,
+        source_language: str | None = None,
+    ) -> tuple[str, bool, str | None, str]:
         normalized_text = (text or "").strip()
         if not normalized_text:
-            return []
+            return "", False, None, "auto"
 
         normalized_text = normalized_text[:settings.GEMINI_MAX_INPUT_CHARS]
+        resolved_source_language = self._resolve_source_language(
+            normalized_text,
+            source_language,
+        )
+
+        provider = settings.TEXT_TRANSLATION_PROVIDER.strip().lower()
+        if provider not in {"none", "gemini"}:
+            translated_text, error = await self._translate_to_english_with_provider(
+                normalized_text,
+                provider,
+                resolved_source_language,
+            )
+            if translated_text:
+                return translated_text, False, None, resolved_source_language
+            logger.warning("Text translation provider failed: %s", error)
 
         if not await self.rate_limiter.try_acquire():
-            logger.info("Gemini local free-tier limit reached; using fallback")
-            return self._fallback_sequence(normalized_text)
+            message = "Gemini local free-tier limit reached"
+            logger.info("%s; using source text for English translation", message)
+            return normalized_text, True, message, resolved_source_language
+
+        prompt = (
+            "Translate the following text to natural English. "
+            "Return only the translated English text, with no explanation.\n\n"
+            f"Text: {normalized_text}\nEnglish:"
+        )
 
         try:
-            content = await self._call_gemini(normalized_text)
-            sequence = self._parse_sequence(content)
-            if sequence:
-                return sequence
-
-            logger.warning("Gemini returned empty glosses; using fallback")
+            response = await asyncio.wait_for(
+                self.model.generate_content_async(
+                    prompt,
+                    generation_config={
+                        "temperature": 0,
+                        "max_output_tokens": settings.GEMINI_MAX_OUTPUT_TOKENS,
+                    },
+                    request_options={"timeout": settings.GEMINI_TIMEOUT_SECONDS},
+                ),
+                timeout=settings.GEMINI_TIMEOUT_SECONDS,
+            )
+            translated_text = (getattr(response, "text", "") or "").strip()
+            if translated_text:
+                return translated_text, False, None, resolved_source_language
+            return normalized_text, True, "Gemini returned an empty translation", resolved_source_language
         except asyncio.TimeoutError:
-            logger.warning("Gemini request timed out; using fallback")
+            message = "Gemini English translation timed out"
+            logger.warning("%s; using source text", message)
+            return normalized_text, True, message, resolved_source_language
         except Exception as exc:
-            logger.warning("Gemini request failed; using fallback: %s", exc)
+            message = f"Gemini English translation failed: {exc}"
+            logger.warning("%s; using source text", message)
+            return normalized_text, True, message, resolved_source_language
 
-        return self._fallback_sequence(normalized_text)
+    async def _translate_to_english_with_provider(
+        self,
+        text: str,
+        provider: str,
+        source_language: str,
+    ) -> tuple[str | None, str | None]:
+        try:
+            if provider == "libretranslate":
+                return await asyncio.to_thread(self._translate_with_libretranslate, text, source_language)
+            if provider == "mymemory":
+                return await asyncio.to_thread(self._translate_with_mymemory, text, source_language)
+            return None, f"Unsupported text translation provider: {provider}"
+        except Exception as exc:
+            return None, str(exc)
 
-    async def _call_gemini(self, text: str) -> str:
-        prompt = build_translation_prompt(text)
-        response = await asyncio.wait_for(
-            self.model.generate_content_async(
-                prompt,
-                generation_config={
-                    "temperature": 0,
-                    "max_output_tokens": settings.GEMINI_MAX_OUTPUT_TOKENS,
-                },
-                request_options={"timeout": settings.GEMINI_TIMEOUT_SECONDS},
-            ),
-            timeout=settings.GEMINI_TIMEOUT_SECONDS,
+    def _translate_with_mymemory(self, text: str, source_language: str) -> tuple[str | None, str | None]:
+        if source_language == "en":
+            return text, None
+
+        params = {
+            "q": text,
+            "langpair": f"{source_language}|en",
+        }
+        if settings.MYMEMORY_EMAIL:
+            params["de"] = settings.MYMEMORY_EMAIL
+
+        url = f"https://api.mymemory.translated.net/get?{parse.urlencode(params)}"
+        with request.urlopen(url, timeout=settings.TEXT_TRANSLATION_TIMEOUT_SECONDS) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+
+        if not isinstance(payload, dict):
+            return None, "MyMemory returned an invalid response"
+
+        if payload.get("responseStatus") not in {200, "200"}:
+            return None, str(payload.get("responseDetails") or "MyMemory translation failed")
+
+        translated_text = payload.get("responseData", {}).get("translatedText")
+        if isinstance(translated_text, str) and translated_text.strip():
+            return translated_text.strip(), None
+
+        return None, "MyMemory returned an empty translation"
+
+    def _translate_with_libretranslate(self, text: str, source_language: str) -> tuple[str | None, str | None]:
+        if not settings.LIBRETRANSLATE_URL:
+            return None, "LIBRETRANSLATE_URL is not configured"
+
+        endpoint = settings.LIBRETRANSLATE_URL.rstrip("/") + "/translate"
+        body = {
+            "q": text,
+            "source": source_language,
+            "target": "en",
+            "format": "text",
+        }
+        if settings.LIBRETRANSLATE_API_KEY:
+            body["api_key"] = settings.LIBRETRANSLATE_API_KEY
+
+        encoded_body = json.dumps(body).encode("utf-8")
+        req = request.Request(
+            endpoint,
+            data=encoded_body,
+            headers={"Content-Type": "application/json"},
+            method="POST",
         )
-        return (getattr(response, "text", "") or "").strip()
 
-    def _parse_sequence(self, content: str) -> list[dict]:
-        if not content:
-            return []
+        with request.urlopen(req, timeout=settings.TEXT_TRANSLATION_TIMEOUT_SECONDS) as response:
+            payload = json.loads(response.read().decode("utf-8"))
 
-        glosses = []
-        for item in re.split(r"[,;\n]+", content):
-            gloss = item.strip().strip("-*0123456789. )(").upper()
-            if gloss:
-                glosses.append(gloss)
+        translated_text = payload.get("translatedText") if isinstance(payload, dict) else None
+        if isinstance(translated_text, str) and translated_text.strip():
+            return translated_text.strip(), None
 
-        return [{"gloss": gloss} for gloss in glosses]
+        return None, "LibreTranslate returned an empty translation"
 
-    def _fallback_sequence(self, text: str) -> list[dict]:
-        glosses = [token.upper() for token in re.findall(r"\w+", text, re.UNICODE)]
-        return [{"gloss": gloss} for gloss in glosses]
+    def _resolve_source_language(self, text: str, source_language: str | None) -> str:
+        normalized_language = (source_language or "").strip().lower()
+        if normalized_language and normalized_language != "auto":
+            return normalized_language
 
+        if VIETNAMESE_PATTERN.search(text) or VIETNAMESE_WORD_PATTERN.search(text):
+            return "vi"
+
+        return "en"
 
 _translation_service_instance = TranslationService()
 

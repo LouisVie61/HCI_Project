@@ -1,6 +1,7 @@
 import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
+from urllib.parse import urlsplit, urlunsplit
 from sqlalchemy import inspect, text
 from core.logging_config import setup_logging
 setup_logging()
@@ -17,7 +18,29 @@ from services.chat_attachments import ensure_attachment_dirs
 from services.translation import get_translation_service
 
 logger = logging.getLogger(__name__)
-logger.info(f"Database: {settings.DATABASE_URL}")
+
+
+def mask_database_url(database_url: str) -> str:
+    parsed_url = urlsplit(database_url)
+    if not parsed_url.password:
+        return database_url
+
+    username = parsed_url.username or ""
+    hostname = parsed_url.hostname or ""
+    port = f":{parsed_url.port}" if parsed_url.port else ""
+    masked_netloc = f"{username}:***@{hostname}{port}"
+    return urlunsplit(
+        (
+            parsed_url.scheme,
+            masked_netloc,
+            parsed_url.path,
+            parsed_url.query,
+            parsed_url.fragment,
+        )
+    )
+
+
+logger.info(f"Database: {mask_database_url(settings.DATABASE_URL)}")
 Base.metadata.create_all(bind=engine)
 ensure_user_profile_columns(engine)
 UPLOAD_DIR = Path(__file__).resolve().parent / "uploads"
@@ -73,7 +96,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-logger.info(f"✓ Starting {settings.APP_NAME} v{settings.APP_VERSION}")
+logger.info(f"Starting {settings.APP_NAME} v{settings.APP_VERSION}")
 
 app.add_middleware(LoggingMiddleware)
 
