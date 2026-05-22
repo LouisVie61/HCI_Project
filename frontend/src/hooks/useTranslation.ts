@@ -1,46 +1,90 @@
 import { useState, useCallback, useRef } from 'react';
 import { translationApi } from '../api/endpoints';
+import { languageDetectionService } from '../services/translation/languageDetection.service';
+import { signMtService, type SignedLanguageCode, type SpokenLanguageCode } from '../services/translation/signmt.service';
+
+const MAX_INPUT_CHARS = 500;
 
 export const useTextToSign = () => {
   const [text, setText] = useState('');
-  const [gestures, setGestures] = useState<any[]>([]);
+  const [spokenLanguage, setSpokenLanguage] = useState<SpokenLanguageCode>('auto');
+  const [signedLanguage, setSignedLanguage] = useState<SignedLanguageCode>('ase');
+  const [detectedLanguage, setDetectedLanguage] = useState('en');
+  const [englishText, setEnglishText] = useState('');
+  const [englishTranslationWarning, setEnglishTranslationWarning] = useState<string | null>(null);
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  const [poseUrl, setPoseUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const translate = useCallback(async (inputText?: string) => {
-    const textToTranslate = inputText || text;
-    if (!textToTranslate.trim()) {
+    const textToTranslate = (inputText ?? text).trim().slice(0, MAX_INPUT_CHARS);
+    if (!textToTranslate) {
       setError('Please enter text to translate');
+      setEnglishText('');
+      setEnglishTranslationWarning(null);
+      setVideoUrl(null);
+      setPoseUrl(null);
       return;
     }
 
     setLoading(true);
     setError(null);
+    setEnglishText('');
+    setEnglishTranslationWarning(null);
+    setVideoUrl(null);
+    setPoseUrl(null);
 
     try {
-      const result = await translationApi.textToSign(textToTranslate);
+      const detectedSpokenLanguage =
+        spokenLanguage === 'auto'
+          ? await languageDetectionService.detectSpokenLanguage(textToTranslate)
+          : spokenLanguage;
 
-      if (result.error) {
-        setError(result.error);
-        return;
+      setDetectedLanguage(detectedSpokenLanguage);
+
+      const englishResult = await translationApi.toEnglish(textToTranslate, detectedSpokenLanguage);
+      const translatedEnglishText =
+        !englishResult.error && englishResult.data?.translated_text
+          ? englishResult.data.translated_text.trim()
+          : textToTranslate;
+
+      if (englishResult.error) {
+        setEnglishTranslationWarning(`English translation failed: ${englishResult.error}`);
+      } else if (englishResult.data?.used_fallback) {
+        setEnglishTranslationWarning(englishResult.data.error || 'English translation failed, so the original text is being used.');
       }
 
-      const data = result.data as any;
-      setGestures(data.gestures || []);
+      if (englishResult.data?.source_language) {
+        setDetectedLanguage(englishResult.data.source_language);
+      }
+
+      setEnglishText(translatedEnglishText);
+      setVideoUrl(signMtService.getSpokenToSignedVideoUrl(translatedEnglishText, 'en', signedLanguage));
+      setPoseUrl(signMtService.getSpokenToSignedPoseUrl(translatedEnglishText, 'en', signedLanguage));
     } catch (err: any) {
       setError(err?.message || 'Translation failed');
     } finally {
       setLoading(false);
     }
-  }, [text]);
+  }, [signedLanguage, spokenLanguage, text]);
 
   return {
     text,
     setText,
-    gestures,
+    spokenLanguage,
+    setSpokenLanguage,
+    signedLanguage,
+    setSignedLanguage,
+    detectedLanguage,
+    englishText,
+    englishTranslationWarning,
+    videoUrl,
+    poseUrl,
     loading,
     error,
     translate,
+    maxInputChars: MAX_INPUT_CHARS,
   };
 };
 

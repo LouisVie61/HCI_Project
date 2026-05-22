@@ -11,7 +11,6 @@ export const API_ENDPOINTS = {
     DETAIL: (id: string) => `/api/v1/lessons/${id}`,
   },
   TRANSLATION: {
-    TEXT_TO_SIGN: '/api/v1/translation/text-to-sign',
     SIGN_TO_TEXT: '/api/v1/translation/sign-to-text',
   },
   FLASHCARDS: {

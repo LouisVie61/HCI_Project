@@ -1,6 +1,7 @@
 from functools import lru_cache
 from pathlib import Path
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings
 
 
@@ -27,6 +28,12 @@ class Settings(BaseSettings):
     GEMINI_MAX_INPUT_CHARS: int = 500
     GEMINI_MAX_OUTPUT_TOKENS: int = 96
 
+    TEXT_TRANSLATION_PROVIDER: str = "mymemory"
+    TEXT_TRANSLATION_TIMEOUT_SECONDS: int = 8
+    LIBRETRANSLATE_URL: str = ""
+    LIBRETRANSLATE_API_KEY: str = ""
+    MYMEMORY_EMAIL: str = ""
+
     OPENROUTER_API_KEY: str = ""
     OPENROUTER_BASE_URL: str = "https://openrouter.ai/api/v1"
     OPENROUTER_MODEL: str = "openai/gpt-5-nano"
@@ -49,6 +56,17 @@ class Settings(BaseSettings):
         "http://127.0.0.1:5173",
     ]
     CORS_ORIGIN_REGEX: str = r"https?://(localhost|127\.0\.0\.1):\d+"
+
+    @field_validator("DEBUG", mode="before")
+    @classmethod
+    def parse_debug_mode(cls, value):
+        if isinstance(value, str):
+            normalized = value.strip().lower()
+            if normalized in {"release", "prod", "production"}:
+                return False
+            if normalized in {"dev", "development"}:
+                return True
+        return value
 
     class Config:
         env_file = ".env"

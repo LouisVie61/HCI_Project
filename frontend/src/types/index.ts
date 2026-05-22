@@ -43,17 +43,12 @@ export interface UserScore {
   attempts: number;
 }
 
-// Translation types
-export interface SignGesture {
-  id: string;
-  name: string;
-  keypoints: number[][];
-  animation: any;
-}
-
-export interface TranslationResponse {
+export interface EnglishTranslationResponse {
   original: string;
-  gestures: SignGesture[];
+  translated_text: string;
+  source_language: string;
+  used_fallback: boolean;
+  error?: string | null;
 }
 
 // Chat types

@@ -4,7 +4,7 @@ import { LoadingState, NoticeState, PanelShell } from '../components/dashboard/D
 import { useChat } from '../hooks';
 
 export const Chat = () => {
-  const { messages, loading, error, sendMessage, clearMessages } = useChat();
+  const { messages, loading, error, sendMessage, startNewConversation } = useChat();
   const [draft, setDraft] = useState('');
 
   const starterPrompts = useMemo(
@@ -27,7 +27,7 @@ export const Chat = () => {
       action={
         <button
           type="button"
-          onClick={clearMessages}
+          onClick={startNewConversation}
           className="inline-flex h-11 items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
         >
           <RefreshCw className="size-4" />

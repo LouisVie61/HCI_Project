@@ -4,7 +4,7 @@ from fastapi import APIRouter, HTTPException, status, Depends, UploadFile, File
 from sqlalchemy.orm import Session
 from core.database import get_db
 from core.config import settings
-from schemas import UserCreate, UserLogin, TokenResponse, UserResponse, ErrorResponse
+from schemas import UserCreate, UserLogin, UserUpdate, TokenResponse, UserResponse, ErrorResponse
 from services import AuthService
 from api.v1.dependencies import get_current_user
 import traceback

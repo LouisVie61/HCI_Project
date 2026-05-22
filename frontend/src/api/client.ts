@@ -4,7 +4,7 @@ const AUTH_STORAGE_KEY = 'access_token';
 const USER_STORAGE_KEY = 'user';
 
 export function getStoredToken(): string | null {
-  const rawToken = localStorage.getItem("access_token");
+  const rawToken = localStorage.getItem(AUTH_STORAGE_KEY);
 
   if (!rawToken) {
     return null;
@@ -24,25 +24,13 @@ interface ApiResponse<T> {
   status: number;
 }
 
-const getStoredToken = () => {
-  const rawToken = localStorage.getItem(AUTH_STORAGE_KEY);
-  if (!rawToken) return null;
-
-  try {
-    const parsedToken = JSON.parse(rawToken);
-    return typeof parsedToken === 'string' ? parsedToken : rawToken;
-  } catch {
-    return rawToken;
-  }
-};
-
 const clearAuthStorage = () => {
   localStorage.removeItem(AUTH_STORAGE_KEY);
   localStorage.removeItem(USER_STORAGE_KEY);
   window.dispatchEvent(new Event('auth:logout'));
 };
 
-const getErrorMessage = async (response: Response) => {
+export const readErrorMessage = async (response: Response) => {
   try {
     const data = (await response.json()) as {
       detail?: string | Array<{ msg?: string }>;
@@ -90,7 +78,7 @@ async function apiCall<T>(
     });
 
     if (!response.ok) {
-      const errorMessage = await getErrorMessage(response);
+      const errorMessage = await readErrorMessage(response);
       if (response.status === 401) {
         clearAuthStorage();
       }
