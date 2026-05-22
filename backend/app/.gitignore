@@ -2,16 +2,77 @@
 venv/
 ENV/
 env/
+.venv/
+virtualenv/
 
 # Python bytecode (rác tạo ra khi chạy code)
+**/__pycache__/
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
+*.egg-info/
+*.egg
+dist/
+build/
 
 # Environment variables (CỰC KỲ QUAN TRỌNG: để không lộ pass database)
 .env
+.env.local
+.env.*.local
+
+# IDE and Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*.swn
+*~
+.DS_Store
+.project
+.pydevproject
+.settings/
+*.sublime-project
+*.sublime-workspace
 
 # OS files
 .DS_Store
 Thumbs.db
+desktop.ini
+.AppleDouble
+.LSOverride
+
+# Testing and Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+coverage.xml
+*.cover
+.hypothesis/
+
+# Logs
+logs/
+*.log
+*.log.*
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+db/
+data/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.bak
+*.backup
+
+# Poetry
+poetry.lock
+
+# pip
+pip-log.txt
+pip-delete-this-directory.txt

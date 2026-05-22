@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 
 interface UseAsyncState<T> {
   data: T | null;
@@ -16,32 +16,46 @@ export const useAsync = <T,>(
   asyncFunction: () => Promise<any>,
   options: UseAsyncOptions = { immediate: true }
 ): UseAsyncState<T> & { retry: () => void } => {
+  const asyncFunctionRef = useRef(asyncFunction);
+  const optionsRef = useRef(options);
+
   const [state, setState] = useState<UseAsyncState<T>>({
     data: null,
     loading: options.immediate !== false,
     error: null,
   });
 
+  useEffect(() => {
+    asyncFunctionRef.current = asyncFunction;
+    optionsRef.current = options;
+  }, [asyncFunction, options]);
+
   const execute = useCallback(async () => {
     setState({ data: null, loading: true, error: null });
 
     try {
-      const result = await asyncFunction();
+      const result = await asyncFunctionRef.current();
 
       if (result.error) {
         const errorMsg = result.error || 'Unknown error';
         setState({ data: null, loading: false, error: errorMsg });
-        options.onError?.(result.error);
+        optionsRef.current.onError?.(result.error);
       } else {
         setState({ data: result.data, loading: false, error: null });
-        options.onSuccess?.(result.data);
+        optionsRef.current.onSuccess?.(result.data);
       }
     } catch (error: any) {
       const errorMsg = error?.message || 'Unknown error';
       setState({ data: null, loading: false, error: errorMsg });
-      options.onError?.(error);
+      optionsRef.current.onError?.(error);
     }
-  }, [asyncFunction, options]);
+  }, []);
+
+  useEffect(() => {
+    if (options.immediate !== false) {
+      execute();
+    }
+  }, [execute, options.immediate]);
 
   return { ...state, retry: execute };
 };

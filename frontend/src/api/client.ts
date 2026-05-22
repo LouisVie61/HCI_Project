@@ -3,6 +3,21 @@ export const API_BASE_URL = (import.meta.env.VITE_API_URL as string) || 'http://
 const AUTH_STORAGE_KEY = 'access_token';
 const USER_STORAGE_KEY = 'user';
 
+export function getStoredToken(): string | null {
+  const rawToken = localStorage.getItem("access_token");
+
+  if (!rawToken) {
+    return null;
+  }
+
+  try {
+    const parsedToken = JSON.parse(rawToken);
+    return typeof parsedToken === "string" ? parsedToken : rawToken;
+  } catch {
+    return rawToken;
+  }
+}
+
 interface ApiResponse<T> {
   data?: T;
   error?: string;
@@ -61,10 +76,10 @@ async function apiCall<T>(
   }
 
   if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
+    headers["Authorization"] = `Bearer ${token}`;
   }
 
-  if (options.headers && typeof options.headers === 'object') {
+  if (options.headers && typeof options.headers === "object") {
     Object.assign(headers, options.headers);
   }
 
@@ -82,17 +97,17 @@ async function apiCall<T>(
       return { error: errorMessage, status: response.status };
     }
 
-    const data = await response.json();
+    const bodyText = await response.text();
+    const data = bodyText ? (JSON.parse(bodyText) as T) : undefined;
     return { data, status: response.status };
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
     return { error: errorMessage, status: 500 };
   }
 }
 
 export const api = {
-  get: <T,>(endpoint: string) =>
-    apiCall<T>(endpoint, { method: 'GET' }),
+  get: <T>(endpoint: string) => apiCall<T>(endpoint, { method: "GET" }),
 
   post: <T,>(endpoint: string, body: unknown) =>
     apiCall<T>(endpoint, { method: 'POST', body: JSON.stringify(body) }),

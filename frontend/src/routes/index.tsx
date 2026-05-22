@@ -9,6 +9,7 @@ import { Chat } from '../pages/Chat';
 import { Profile } from '../pages/Profile';
 import { DashboardLayout } from '../components/dashboard/DashboardLayout';
 import { ProtectedRoute } from './ProtectedRoute';
+import { MemoryGame } from "../pages/MemoryGame";
 
 export const AppRoutes = () => {
   return (
