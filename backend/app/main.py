@@ -1,5 +1,6 @@
 import logging
 from contextlib import asynccontextmanager
+from pathlib import Path
 from sqlalchemy import inspect, text
 from core.logging_config import setup_logging
 setup_logging()
@@ -8,6 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from core.config import settings
 from core.database import Base, engine
+from core.migrations import ensure_user_profile_columns
 import models  # noqa: F401
 from api.v1.router import router
 from middleware.LoggingMiddleware import LoggingMiddleware
@@ -17,6 +19,9 @@ from services.translation import get_translation_service
 logger = logging.getLogger(__name__)
 logger.info(f"Database: {settings.DATABASE_URL}")
 Base.metadata.create_all(bind=engine)
+ensure_user_profile_columns(engine)
+UPLOAD_DIR = Path(__file__).resolve().parent / "uploads"
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def ensure_chat_schema() -> None:
@@ -81,7 +86,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.mount("/uploads", StaticFiles(directory=str(settings.UPLOADS_DIR)), name="uploads")
+app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 
 app.include_router(router)
 

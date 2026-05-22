@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { User, AuthResponse } from '../types';
+import type { User, UserUpdate, AuthResponse } from '../types';
 import { authApi } from '../api/endpoints';
 import { AUTH_STORAGE_KEY, USER_STORAGE_KEY } from '../constants';
 import { localStorageHelper, errorHandler } from '../utils';
@@ -22,6 +22,24 @@ export const useAuth = () => {
     };
 
     checkAuth();
+  }, []);
+
+  useEffect(() => {
+    const handleUserUpdated = (event: Event) => {
+      const customEvent = event as CustomEvent<User>;
+      setUser(customEvent.detail);
+    };
+
+    const handleLogout = () => {
+      setUser(null);
+    };
+
+    window.addEventListener('auth:user-updated', handleUserUpdated);
+    window.addEventListener('auth:logout', handleLogout);
+    return () => {
+      window.removeEventListener('auth:user-updated', handleUserUpdated);
+      window.removeEventListener('auth:logout', handleLogout);
+    };
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {
@@ -93,6 +111,58 @@ export const useAuth = () => {
     }
   }, []);
 
+  const updateProfile = useCallback(async (profile: UserUpdate) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const result = await authApi.updateProfile(profile);
+
+      if (result.error) {
+        setError(result.error);
+        return null;
+      }
+
+      const updatedUser = result.data as User;
+      localStorageHelper.setItem(USER_STORAGE_KEY, updatedUser);
+      setUser(updatedUser);
+      window.dispatchEvent(new CustomEvent('auth:user-updated', { detail: updatedUser }));
+      return updatedUser;
+    } catch (err) {
+      const errorMsg = errorHandler.format(err);
+      setError(errorMsg);
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const uploadAvatar = useCallback(async (avatar: File) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const result = await authApi.uploadAvatar(avatar);
+
+      if (result.error) {
+        setError(result.error);
+        return null;
+      }
+
+      const updatedUser = result.data as User;
+      localStorageHelper.setItem(USER_STORAGE_KEY, updatedUser);
+      setUser(updatedUser);
+      window.dispatchEvent(new CustomEvent('auth:user-updated', { detail: updatedUser }));
+      return updatedUser;
+    } catch (err) {
+      const errorMsg = errorHandler.format(err);
+      setError(errorMsg);
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   const isAuthenticated = !!user;
 
   return {
@@ -102,6 +172,8 @@ export const useAuth = () => {
     error,
     login,
     signup,
+    updateProfile,
+    uploadAvatar,
     logout,
   };
 };

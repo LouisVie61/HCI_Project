@@ -1,5 +1,7 @@
 // API Client setup
-export const API_BASE_URL = (import.meta.env.VITE_API_URL as string) || "http://localhost:8000";
+export const API_BASE_URL = (import.meta.env.VITE_API_URL as string) || 'http://localhost:8000';
+const AUTH_STORAGE_KEY = 'access_token';
+const USER_STORAGE_KEY = 'user';
 
 export function getStoredToken(): string | null {
   const rawToken = localStorage.getItem("access_token");
@@ -22,28 +24,56 @@ interface ApiResponse<T> {
   status: number;
 }
 
-export async function readErrorMessage(response: Response): Promise<string> {
-  const bodyText = await response.text();
-
-  if (!bodyText) {
-    return `API Error: ${response.status}`;
-  }
+const getStoredToken = () => {
+  const rawToken = localStorage.getItem(AUTH_STORAGE_KEY);
+  if (!rawToken) return null;
 
   try {
-    const parsed = JSON.parse(bodyText) as { detail?: string; message?: string };
-    return parsed.detail || parsed.message || `API Error: ${response.status}`;
+    const parsedToken = JSON.parse(rawToken);
+    return typeof parsedToken === 'string' ? parsedToken : rawToken;
   } catch {
-    return bodyText;
+    return rawToken;
   }
-}
+};
 
-async function apiCall<T>(endpoint: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
+const clearAuthStorage = () => {
+  localStorage.removeItem(AUTH_STORAGE_KEY);
+  localStorage.removeItem(USER_STORAGE_KEY);
+  window.dispatchEvent(new Event('auth:logout'));
+};
+
+const getErrorMessage = async (response: Response) => {
+  try {
+    const data = (await response.json()) as {
+      detail?: string | Array<{ msg?: string }>;
+      message?: string;
+    };
+
+    if (typeof data.detail === 'string') {
+      return data.detail;
+    }
+    if (Array.isArray(data.detail) && data.detail[0]?.msg) {
+      return data.detail[0].msg;
+    }
+    return data.message || `API Error: ${response.status}`;
+  } catch {
+    return `API Error: ${response.status}`;
+  }
+};
+
+async function apiCall<T>(
+  endpoint: string,
+  options: RequestInit = {}
+): Promise<ApiResponse<T>> {
   const url = `${API_BASE_URL}${endpoint}`;
   const token = getStoredToken();
+  const isFormData = options.body instanceof FormData;
 
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
+  const headers: Record<string, string> = {};
+
+  if (!isFormData) {
+    headers['Content-Type'] = 'application/json';
+  }
 
   if (token) {
     headers["Authorization"] = `Bearer ${token}`;
@@ -60,15 +90,11 @@ async function apiCall<T>(endpoint: string, options: RequestInit = {}): Promise<
     });
 
     if (!response.ok) {
+      const errorMessage = await getErrorMessage(response);
       if (response.status === 401) {
-        localStorage.removeItem("access_token");
-        // Redirect to login if needed
+        clearAuthStorage();
       }
-      throw new Error(await readErrorMessage(response));
-    }
-
-    if (response.status === 204) {
-      return { status: response.status };
+      return { error: errorMessage, status: response.status };
     }
 
     const bodyText = await response.text();
@@ -83,11 +109,17 @@ async function apiCall<T>(endpoint: string, options: RequestInit = {}): Promise<
 export const api = {
   get: <T>(endpoint: string) => apiCall<T>(endpoint, { method: "GET" }),
 
-  post: <T>(endpoint: string, body: any) => apiCall<T>(endpoint, { method: "POST", body: JSON.stringify(body) }),
+  post: <T,>(endpoint: string, body: unknown) =>
+    apiCall<T>(endpoint, { method: 'POST', body: JSON.stringify(body) }),
 
-  put: <T>(endpoint: string, body: any) => apiCall<T>(endpoint, { method: "PUT", body: JSON.stringify(body) }),
+  put: <T,>(endpoint: string, body: unknown) =>
+    apiCall<T>(endpoint, { method: 'PUT', body: JSON.stringify(body) }),
 
-  delete: <T>(endpoint: string) => apiCall<T>(endpoint, { method: "DELETE" }),
+  postForm: <T,>(endpoint: string, body: FormData) =>
+    apiCall<T>(endpoint, { method: 'POST', body }),
+
+  delete: <T,>(endpoint: string) =>
+    apiCall<T>(endpoint, { method: 'DELETE' }),
 };
 
 export default api;

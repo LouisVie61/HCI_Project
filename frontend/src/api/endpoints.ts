@@ -1,5 +1,5 @@
 import api, { API_BASE_URL, getStoredToken, readErrorMessage } from "./client";
-import type { ChatConversationSummary, ChatHistoryMessage, ChatMessageResponse, Flashcard, UserScore } from "../types";
+import type { UserUpdate, ChatConversationSummary, ChatHistoryMessage, ChatMessageResponse, Flashcard, UserScore } from "../types";
 
 type ChatStreamPayload = { type: "conversation"; conversation: ChatConversationSummary } | { type: "delta"; delta: string } | { type: "done"; message: ChatMessageResponse; conversation: ChatConversationSummary } | { type: "error"; detail: string };
 
@@ -125,7 +125,17 @@ export const authApi = {
 
   logout: () => api.post("/api/v1/auth/logout", {}),
 
-  getCurrentUser: () => api.get("/api/v1/auth/me"),
+  getCurrentUser: () =>
+    api.get('/api/v1/auth/me'),
+
+  updateProfile: (profile: UserUpdate) =>
+    api.put('/api/v1/auth/me', profile),
+
+  uploadAvatar: (avatar: File) => {
+    const formData = new FormData();
+    formData.append('avatar', avatar);
+    return api.postForm('/api/v1/auth/me/avatar', formData);
+  },
 };
 
 export const lessonApi = {
@@ -142,7 +152,8 @@ export const lessonApi = {
 export const translationApi = {
   textToSign: (text: string) => api.post("/api/v1/translation/text-to-sign", { text }),
 
-  signToText: (keypoints: any) => api.post("/api/v1/translation/sign-to-text", { keypoints }),
+  signToText: (keypoints: unknown) =>
+    api.post('/api/v1/translation/sign-to-text', { keypoints }),
 };
 
 export const flashcardApi = {

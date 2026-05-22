@@ -1,6 +1,7 @@
 from schemas.user import (
     UserBase,
     UserCreate,
+    UserUpdate,
     UserResponse,
     UserLogin,
     TokenResponse,
@@ -25,6 +26,7 @@ from schemas.lesson import (
 __all__ = [
     "UserBase",
     "UserCreate",
+    "UserUpdate",
     "UserResponse",
     "UserLogin",
     "TokenResponse",
