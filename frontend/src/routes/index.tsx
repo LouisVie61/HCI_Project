@@ -5,7 +5,7 @@ import { Lessons } from '../pages/Lessons';
 import { Flashcards } from '../pages/Flashcards';
 import { SignRecognition } from '../pages/SignRecognition';
 import { TextTranslate } from '../pages/TextTranslate';
-import { Chat } from '../pages/Chat';
+import { ChatAI } from '../pages/ChatAI';
 import { Profile } from '../pages/Profile';
 import { DashboardLayout } from '../components/dashboard/DashboardLayout';
 import { ProtectedRoute } from './ProtectedRoute';
@@ -32,7 +32,7 @@ export const AppRoutes = () => {
           <Route path="flashcards" element={<Flashcards />} />
           <Route path="recognition" element={<SignRecognition />} />
           <Route path="translate" element={<TextTranslate />} />
-          <Route path="chat" element={<Chat />} />
+          <Route path="chat" element={<ChatAI />} />
           <Route path="profile" element={<Profile />} />
         </Route>
 
