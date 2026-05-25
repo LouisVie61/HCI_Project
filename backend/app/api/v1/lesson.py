@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, status, Depends
+from fastapi import APIRouter, HTTPException, Query, status, Depends
 from sqlalchemy.orm import Session
 from uuid import UUID
 from core.database import get_db
@@ -19,9 +19,13 @@ async def get_all_my_progress(
     return service.get_all_progress(current_user.id)
 
 @router.get("/", response_model=list[LessonResponse])
-async def get_lessons(db: Session = Depends(get_db)):
+async def get_lessons(
+    search: str | None = Query(default=None),
+    difficulty: str | None = Query(default=None, pattern="^(beginner|intermediate|advanced)$"),
+    db: Session = Depends(get_db),
+):
     service = LessonService(db)
-    return service.get_lessons()
+    return service.get_lessons(search=search, difficulty=difficulty)
 
 @router.get("/{lesson_id}", response_model=LessonDetailResponse)
 async def get_lesson_detail(lesson_id: UUID, db: Session = Depends(get_db)):

@@ -1,3 +1,4 @@
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 from models.lesson import Lesson, LessonProgress
 from uuid import UUID
@@ -10,14 +11,27 @@ class LessonRepository:
     def __init__(self, db: Session):
             self.db = db
 
-    def get_all_published(self) -> list[Lesson]:
-        # SQL: SELECT * FROM lessons WHERE is_published=TRUE ORDER BY order_index
-        return (
-            self.db.query(Lesson)
-            .filter(Lesson.is_published == True)
-            .order_by(Lesson.order_index)
-            .all()
-        )
+    def get_all_published(
+        self,
+        search: Optional[str] = None,
+        difficulty: Optional[str] = None,
+    ) -> list[Lesson]:
+        # SQL: SELECT * FROM lessons WHERE is_published=TRUE ...
+        query = self.db.query(Lesson).filter(Lesson.is_published == True)
+
+        if search:
+            search_pattern = f"%{search.strip()}%"
+            query = query.filter(
+                or_(
+                    Lesson.title.ilike(search_pattern),
+                    Lesson.description.ilike(search_pattern),
+                )
+            )
+
+        if difficulty:
+            query = query.filter(Lesson.difficulty == difficulty)
+
+        return query.order_by(Lesson.order_index).all()
 
 
     def get_by_id(self, lesson_id: UUID) -> Optional[Lesson]:
