@@ -1,6 +1,6 @@
 from sqlalchemy import (
     Column, String, Text, Integer, Float,
-    ForeignKey, DateTime, Boolean, Enum
+    ForeignKey, DateTime, Boolean, Enum, UniqueConstraint
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
@@ -29,6 +29,7 @@ class Lesson(Base):
 
 class LessonProgress(Base):
     __tablename__ = "lesson_progresses"
+    __table_args__ = (UniqueConstraint("user_id", "lesson_id", name="uq_lesson_progress_user_lesson"),)
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)

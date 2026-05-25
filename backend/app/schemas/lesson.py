@@ -8,11 +8,11 @@ from typing import Optional
 class LessonBase(BaseModel):
     title: str
     description: Optional[str] = None
-    difficulty: str = "beginner"
+    content: str = Field(min_length=1)
+    difficulty: str = Field(default="beginner", pattern="^(beginner|intermediate|advanced)$")
     order_index: int = 0
 
 class LessonCreate(LessonBase):
-    content: Optional[str] = None
     is_published: bool = False
 
 class LessonResponse(LessonBase):
@@ -24,7 +24,7 @@ class LessonResponse(LessonBase):
         from_attributes = True # cho phép convert từ SQLAlchemy object
 
 class LessonDetailResponse(LessonResponse):
-    content: Optional[str] = None
+    pass
 
 # Progress Schemas
 
@@ -39,7 +39,7 @@ class ProgressResponse(BaseModel):
     status: str
     progress_percent: float
     started_at: Optional[datetime] = None
-    complete_at: Optional[datetime] = None
+    completed_at: Optional[datetime] = None
     last_accessed_at: Optional[datetime] = None
 
     class Config:

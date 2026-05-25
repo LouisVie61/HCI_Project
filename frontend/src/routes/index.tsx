@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { Login } from '../pages/Login';
 import { Dashboard } from '../pages/Dashboard';
 import { Lessons } from '../pages/Lessons';
+import { LessonPlayer } from '../pages/LessonPlayer';
 import { Flashcards } from '../pages/Flashcards';
 import { SignRecognition } from '../pages/SignRecognition';
 import { TextTranslate } from '../pages/TextTranslate';
@@ -29,6 +30,7 @@ export const AppRoutes = () => {
         >
           <Route index element={<Dashboard />} />
           <Route path="lessons" element={<Lessons />} />
+          <Route path="lessons/:lessonId" element={<LessonPlayer />} />
           <Route path="flashcards" element={<Flashcards />} />
           <Route path="recognition" element={<SignRecognition />} />
           <Route path="translate" element={<TextTranslate />} />

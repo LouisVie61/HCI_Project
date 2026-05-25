@@ -1,16 +1,24 @@
+import { useNavigate } from 'react-router-dom';
 import { Play, RefreshCw, Search } from 'lucide-react';
 import { LoadingState, NoticeState, PanelShell } from '../components/dashboard/DashboardShell';
 import { formatDate } from '../components/dashboard/dashboardUtils';
 import { useLessons } from '../hooks';
 
+const difficultyLabels = {
+  beginner: 'Cơ bản',
+  intermediate: 'Trung bình',
+  advanced: 'Nâng cao',
+} as const;
+
 export const Lessons = () => {
-  const { lessons, loading, error, search, setSearch, filter, setFilter, refetch } = useLessons();
+  const navigate = useNavigate();
+  const { lessons, loading, error, search, setSearch, difficulty, setDifficulty, refetch } = useLessons();
 
   return (
     <PanelShell
       eyebrow="Learning"
       title="Bài học ngôn ngữ ký hiệu"
-      description="Tìm kiếm bài học, lọc theo nhóm nội dung và mở nhanh phần cần luyện."
+      description="Tìm kiếm bài học, lọc theo độ khó và mở bài cần luyện."
       action={
         <button
           type="button"
@@ -33,14 +41,14 @@ export const Lessons = () => {
           />
         </div>
         <select
-          value={filter}
-          onChange={(event) => setFilter(event.target.value)}
+          value={difficulty}
+          onChange={(event) => setDifficulty(event.target.value)}
           className="h-12 rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm font-medium text-slate-700 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10"
         >
-          <option value="">Tất cả chủ đề</option>
-          <option value="alphabet">Bảng chữ cái</option>
-          <option value="daily">Giao tiếp hằng ngày</option>
-          <option value="number">Số đếm</option>
+          <option value="">Tất cả độ khó</option>
+          <option value="beginner">Cơ bản</option>
+          <option value="intermediate">Trung bình</option>
+          <option value="advanced">Nâng cao</option>
         </select>
       </div>
 
@@ -60,17 +68,21 @@ export const Lessons = () => {
               <span className="text-xs text-slate-400">{formatDate(lesson.created_at)}</span>
             </div>
             <h3 className="text-lg font-semibold text-slate-950">{lesson.title}</h3>
-            <p className="mt-2 line-clamp-3 text-sm leading-6 text-slate-500">{lesson.content}</p>
-            {lesson.video_url && (
-              <a
-                href={lesson.video_url}
-                target="_blank"
-                rel="noreferrer"
+            <p className="mt-2 line-clamp-3 text-sm leading-6 text-slate-500">
+              {lesson.description || 'Bài học ngôn ngữ ký hiệu.'}
+            </p>
+            <p className="mt-3 text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
+              {difficultyLabels[lesson.difficulty]}
+            </p>
+            {lesson.content && (
+              <button
+                type="button"
+                onClick={() => navigate(`/dashboard/lessons/${lesson.id}`)}
                 className="mt-5 inline-flex h-10 items-center gap-2 rounded-xl bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-emerald-700"
               >
                 <Play className="size-4" />
                 Xem video
-              </a>
+              </button>
             )}
           </article>
         ))}

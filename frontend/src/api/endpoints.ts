@@ -1,5 +1,5 @@
 import api, { API_BASE_URL, getStoredToken, readErrorMessage } from "./client";
-import type { UserUpdate, ChatConversationSummary, ChatHistoryMessage, ChatMessageResponse, EnglishTranslationResponse, Flashcard, UserScore } from "../types";
+import type { UserUpdate, ChatConversationSummary, ChatHistoryMessage, ChatMessageResponse, EnglishTranslationResponse, Flashcard, Lesson, LessonProgress, UserScore } from "../types";
 
 type ChatStreamPayload = { type: "conversation"; conversation: ChatConversationSummary } | { type: "delta"; delta: string } | { type: "done"; message: ChatMessageResponse; conversation: ChatConversationSummary } | { type: "error"; detail: string };
 
@@ -139,14 +139,26 @@ export const authApi = {
 };
 
 export const lessonApi = {
-  getAll: (search?: string, filter?: string) => {
+  getAll: (search?: string, difficulty?: string) => {
     const params = new URLSearchParams();
     if (search) params.append("search", search);
-    if (filter) params.append("filter", filter);
-    return api.get(`/api/v1/lessons?${params}`);
+    if (difficulty) params.append("difficulty", difficulty);
+    const query = params.toString();
+    return api.get<Lesson[]>(`/api/v1/lessons/${query ? `?${query}` : ""}`);
   },
 
-  getById: (id: string) => api.get(`/api/v1/lessons/${id}`),
+  getById: (id: string) => api.get<Lesson>(`/api/v1/lessons/${id}`),
+
+  getAllProgress: () => api.get<LessonProgress[]>("/api/v1/lessons/me/all-progress"),
+
+  start: (id: string) => api.post<LessonProgress>(`/api/v1/lessons/${id}/start`, {}),
+
+  updateProgress: (id: string, progressPercent: number) =>
+    api.put<LessonProgress>(`/api/v1/lessons/${id}/progress`, { progress_percent: progressPercent }),
+
+  getProgress: (id: string) => api.get<LessonProgress>(`/api/v1/lessons/${id}/progress`),
+
+  restart: (id: string) => api.post<LessonProgress>(`/api/v1/lessons/${id}/restart`, {}),
 };
 
 export const translationApi = {

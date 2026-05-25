@@ -10,8 +10,8 @@ class LessonService:
         self.lesson_repo = LessonRepository(db)
         self.progress_repo = ProgressRepository(db)
 
-    def get_lessons(self) -> list:
-        return self.lesson_repo.get_all_published()
+    def get_lessons(self, search: str | None = None, difficulty: str | None = None) -> list:
+        return self.lesson_repo.get_all_published(search=search, difficulty=difficulty)
 
     def get_lesson_detail(self, lesson_id: UUID):
         lesson = self.lesson_repo.get_by_id(lesson_id)

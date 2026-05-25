@@ -25,9 +25,23 @@ export interface AuthResponse {
 export interface Lesson {
   id: string;
   title: string;
+  description: string | null;
   content: string;
-  video_url: string;
+  difficulty: 'beginner' | 'intermediate' | 'advanced';
+  order_index: number;
+  is_published: boolean;
   created_at: string;
+}
+
+export interface LessonProgress {
+  id: string;
+  user_id: string;
+  lesson_id: string;
+  status: 'not_started' | 'in_progress' | 'completed';
+  progress_percent: number;
+  started_at: string | null;
+  completed_at: string | null;
+  last_accessed_at: string | null;
 }
 
 // Flashcard types

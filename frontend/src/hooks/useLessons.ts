@@ -1,15 +1,15 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { Lesson } from '../types';
 import { lessonApi } from '../api/endpoints';
 import { useAsync } from './useAsync';
 
 export const useLessons = () => {
   const [search, setSearch] = useState('');
-  const [filter, setFilter] = useState('');
+  const [difficulty, setDifficulty] = useState('');
 
   const fetchLessons = useCallback(
-    () => lessonApi.getAll(search, filter),
-    [search, filter]
+    () => lessonApi.getAll(search, difficulty),
+    [search, difficulty]
   );
 
   const { data: lessons, loading, error, retry } = useAsync<Lesson[]>(
@@ -17,14 +17,29 @@ export const useLessons = () => {
     { immediate: true }
   );
 
+  const hasLoadedInitialLessons = useRef(false);
+
+  useEffect(() => {
+    if (!hasLoadedInitialLessons.current) {
+      hasLoadedInitialLessons.current = true;
+      return;
+    }
+
+    const refreshTimer = window.setTimeout(() => {
+      retry();
+    }, 250);
+
+    return () => window.clearTimeout(refreshTimer);
+  }, [difficulty, retry, search]);
+
   return {
     lessons: lessons || [],
     loading,
     error,
     search,
     setSearch,
-    filter,
-    setFilter,
+    difficulty,
+    setDifficulty,
     refetch: retry,
   };
 };
