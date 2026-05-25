@@ -1,11 +1,12 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
-import { Lesson } from '../types';
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
+import { Lesson, LessonProgress } from '../types';
 import { lessonApi } from '../api/endpoints';
 import { useAsync } from './useAsync';
 
 export const useLessons = () => {
   const [search, setSearch] = useState('');
   const [difficulty, setDifficulty] = useState('');
+  const [learningStatus, setLearningStatus] = useState('');
 
   const fetchLessons = useCallback(
     () => lessonApi.getAll(search, difficulty),
@@ -16,6 +17,51 @@ export const useLessons = () => {
     fetchLessons,
     { immediate: true }
   );
+
+  const {
+    data: progressList,
+    loading: progressLoading,
+    error: progressError,
+    retry: retryProgress,
+  } = useAsync<LessonProgress[]>(
+    () => lessonApi.getAllProgress(),
+    { immediate: true }
+  );
+
+  const progressByLessonId = useMemo(() => {
+    return (progressList || []).reduce<Record<string, LessonProgress>>((progressMap, progress) => {
+      progressMap[progress.lesson_id] = progress;
+      return progressMap;
+    }, {});
+  }, [progressList]);
+
+  const filteredLessons = useMemo(() => {
+    const currentLessons = lessons || [];
+
+    if (!learningStatus) {
+      return currentLessons;
+    }
+
+    return currentLessons.filter((lesson) => {
+      const progressPercent = progressByLessonId[lesson.id]?.progress_percent || 0;
+      const hasLearned = progressPercent > 0;
+
+      if (learningStatus === 'learned') {
+        return hasLearned;
+      }
+
+      if (learningStatus === 'unlearned') {
+        return !hasLearned;
+      }
+
+      return true;
+    });
+  }, [learningStatus, lessons, progressByLessonId]);
+
+  const refetch = useCallback(() => {
+    retry();
+    retryProgress();
+  }, [retry, retryProgress]);
 
   const hasLoadedInitialLessons = useRef(false);
 
@@ -33,14 +79,19 @@ export const useLessons = () => {
   }, [difficulty, retry, search]);
 
   return {
-    lessons: lessons || [],
+    lessons: filteredLessons,
     loading,
     error,
+    progressLoading,
+    progressError,
+    progressByLessonId,
     search,
     setSearch,
     difficulty,
     setDifficulty,
-    refetch: retry,
+    learningStatus,
+    setLearningStatus,
+    refetch,
   };
 };
 
