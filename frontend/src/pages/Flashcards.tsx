@@ -1,6 +1,38 @@
-import { CheckCircle2, ChevronLeft, ChevronRight, RefreshCw, Trophy } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { CheckCircle2, ChevronRight, ExternalLink, RefreshCw, Trophy, XCircle } from 'lucide-react';
 import { LoadingState, NoticeState, PanelShell, StatTile } from '../components/dashboard/DashboardShell';
 import { useFlashcards } from '../hooks';
+import type { Flashcard } from '../types';
+
+const shuffle = <T,>(items: T[]) => [...items].sort(() => Math.random() - 0.5);
+
+const getSignData = (card: Flashcard | null | undefined) => {
+  const signData = card?.sign_data;
+  if (!signData || typeof signData !== 'object') {
+    return {};
+  }
+
+  return signData as Record<string, unknown>;
+};
+
+const getMediaUrl = (card: Flashcard | null | undefined) => {
+  const signData = getSignData(card);
+
+  return String(
+    signData.mp4_url ||
+      signData.video_mp4 ||
+      signData.video_src ||
+      signData.media_url ||
+      signData.src ||
+      signData.video_url ||
+      ''
+  );
+};
+
+const isVideoFile = (url: string) => {
+  const cleanUrl = url.split('?')[0].toLowerCase();
+  return cleanUrl.endsWith('.mp4') || cleanUrl.endsWith('.webm') || cleanUrl.endsWith('.ogg');
+};
 
 export const Flashcards = () => {
   const {
@@ -12,19 +44,64 @@ export const Flashcards = () => {
     loading,
     error,
     nextCard,
-    prevCard,
     recordAnswer,
     submitScore,
     refetch,
-  } = useFlashcards(10);
+  } = useFlashcards(9);
+  const [selectedAnswer, setSelectedAnswer] = useState('');
+  const [hasAnswered, setHasAnswered] = useState(false);
 
   const progress = cards.length ? Math.round(((currentIndex + 1) / cards.length) * 100) : 0;
+  const mediaUrl = getMediaUrl(currentCard);
+  const sourceUrl = String(getSignData(currentCard).source_url || (!isVideoFile(mediaUrl) ? mediaUrl : ''));
+  const isCorrect = Boolean(currentCard && selectedAnswer === currentCard.word);
+
+  const answerOptions = useMemo(() => {
+    if (!currentCard) {
+      return [];
+    }
+
+    const customOptions = getSignData(currentCard).options;
+    if (Array.isArray(customOptions) && customOptions.length >= 4) {
+      return shuffle(customOptions.slice(0, 4).map(String));
+    }
+
+    const wrongAnswers = shuffle(cards.filter((card) => card.id !== currentCard.id))
+      .slice(0, 3)
+      .map((card) => card.word);
+
+    return shuffle([currentCard.word, ...wrongAnswers]).slice(0, 4);
+  }, [cards, currentCard]);
+
+  useEffect(() => {
+    setSelectedAnswer('');
+    setHasAnswered(false);
+  }, [currentCard?.id]);
+
+  const handleAnswer = (answer: string) => {
+    if (!currentCard || hasAnswered) {
+      return;
+    }
+
+    setSelectedAnswer(answer);
+    setHasAnswered(true);
+    void recordAnswer(answer === currentCard.word);
+  };
+
+  const handleNext = () => {
+    if (currentIndex === cards.length - 1) {
+      void submitScore();
+      return;
+    }
+
+    nextCard();
+  };
 
   return (
     <PanelShell
-      eyebrow="Practice"
-      title="Flashcard luyện nhớ"
-      description="Lật từng thẻ, tự đánh giá câu trả lời và lưu điểm sau lượt luyện."
+      eyebrow="Flashcard"
+      title="Đoán ký hiệu qua video"
+      description="Xem video ký hiệu, chọn 1 trong 4 đáp án và lưu điểm sau lượt luyện."
       action={
         <button
           type="button"
@@ -43,6 +120,7 @@ export const Flashcards = () => {
           {!loading && !error && !currentCard && (
             <NoticeState tone="neutral" title="Chưa có flashcard" message="Backend chưa trả dữ liệu thẻ luyện tập." />
           )}
+
           {currentCard && (
             <>
               <div className="mb-5 flex items-center justify-between gap-3">
@@ -51,71 +129,91 @@ export const Flashcards = () => {
                 </span>
                 <span className="text-sm font-semibold text-emerald-700">{progress}%</span>
               </div>
+
               <div className="mb-6 h-2 overflow-hidden rounded-full bg-slate-100">
                 <div className="h-full rounded-full bg-emerald-500 transition-all" style={{ width: `${progress}%` }} />
               </div>
 
-              <div className="flex min-h-[260px] flex-col items-center justify-center rounded-3xl bg-slate-950 p-8 text-center text-white">
-                <p className="mb-4 text-sm font-medium uppercase tracking-[0.2em] text-emerald-300">Từ cần luyện</p>
-                <h3 className="text-4xl font-semibold">{currentCard.word}</h3>
-                <p className="mt-5 max-w-md text-sm leading-6 text-slate-300">
-                  Quan sát dữ liệu ký hiệu hoặc tự thực hiện ký hiệu, sau đó đánh dấu kết quả của bạn.
-                </p>
-              </div>
-
-              <div className="mt-5 rounded-2xl bg-slate-50 p-4">
-                <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Dữ liệu ký hiệu</p>
-                <pre className="max-h-28 overflow-auto whitespace-pre-wrap text-xs text-slate-500">
-                  {JSON.stringify(currentCard.sign_data, null, 2)}
-                </pre>
-              </div>
-
-              <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                <button
-                  type="button"
-                  onClick={() => recordAnswer(false)}
-                  className="h-12 rounded-2xl border border-slate-200 bg-white text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-                >
-                  Chưa nhớ
-                </button>
-                <button
-                  type="button"
-                  onClick={() => recordAnswer(true)}
-                  className="h-12 rounded-2xl bg-emerald-600 text-sm font-semibold text-white transition hover:bg-emerald-700"
-                >
-                  Đã nhớ
-                </button>
-              </div>
-
-              <div className="mt-5 flex items-center justify-between gap-3">
-                <button
-                  type="button"
-                  onClick={prevCard}
-                  disabled={currentIndex === 0}
-                  className="inline-flex h-11 items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-45"
-                >
-                  <ChevronLeft className="size-4" />
-                  Trước
-                </button>
-                {currentIndex === cards.length - 1 ? (
-                  <button
-                    type="button"
-                    onClick={submitScore}
-                    className="inline-flex h-11 items-center gap-2 rounded-2xl bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-emerald-700"
-                  >
-                    <CheckCircle2 className="size-4" />
-                    Lưu điểm
-                  </button>
+              <div className="overflow-hidden rounded-3xl border border-slate-200 bg-slate-950">
+                {mediaUrl && isVideoFile(mediaUrl) ? (
+                  <video
+                    key={mediaUrl}
+                    src={mediaUrl}
+                    controls
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    className="aspect-video w-full bg-slate-950 object-contain"
+                  />
                 ) : (
-                  <button
-                    type="button"
-                    onClick={nextCard}
-                    className="inline-flex h-11 items-center gap-2 rounded-2xl bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-emerald-700"
-                  >
-                    Tiếp
-                    <ChevronRight className="size-4" />
-                  </button>
+                  <div className="flex aspect-video items-center justify-center px-6 text-center text-sm text-slate-300">
+                    Flashcard này chưa có file video MP4.
+                  </div>
                 )}
+              </div>
+
+              {sourceUrl && (
+                <a
+                  href={sourceUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-emerald-700 hover:text-emerald-800"
+                >
+                  Mở nguồn video
+                  <ExternalLink className="size-4" />
+                </a>
+              )}
+
+              <div className="mt-6 grid gap-4 sm:grid-cols-2">
+                {answerOptions.map((answer) => {
+                  const isSelected = selectedAnswer === answer;
+                  const isRightAnswer = currentCard.word === answer;
+                  const showCorrect = hasAnswered && isRightAnswer;
+                  const showWrong = hasAnswered && isSelected && !isRightAnswer;
+
+                  return (
+                    <button
+                      key={answer}
+                      type="button"
+                      onClick={() => handleAnswer(answer)}
+                      disabled={hasAnswered}
+                      className={`flex min-h-16 items-center justify-between rounded-2xl border px-5 py-4 text-left text-base font-semibold shadow-sm transition ${
+                        showCorrect
+                          ? 'border-emerald-400 bg-emerald-50 text-emerald-800 ring-2 ring-emerald-100'
+                          : showWrong
+                            ? 'border-rose-400 bg-rose-50 text-rose-800 ring-2 ring-rose-100'
+                            : 'border-slate-200 bg-white text-slate-900 hover:border-emerald-200 hover:bg-emerald-50 disabled:hover:border-slate-200 disabled:hover:bg-white'
+                      }`}
+                    >
+                      <span>{answer}</span>
+                      {showCorrect && <CheckCircle2 className="size-5" />}
+                      {showWrong && <XCircle className="size-5" />}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {hasAnswered && (
+                <div
+                  className={`mt-5 rounded-2xl px-4 py-3 text-sm font-semibold ${
+                    isCorrect ? 'bg-emerald-50 text-emerald-800' : 'bg-rose-50 text-rose-800'
+                  }`}
+                >
+                  {isCorrect ? 'Chính xác!' : `Chưa đúng. Đáp án là: ${currentCard.word}`}
+                </div>
+              )}
+
+              <div className="mt-5 flex justify-end">
+                <button
+                  type="button"
+                  onClick={handleNext}
+                  disabled={!hasAnswered}
+                  className="inline-flex h-11 items-center gap-2 rounded-2xl bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-45"
+                >
+                  {currentIndex === cards.length - 1 ? 'Lưu điểm' : 'Tiếp'}
+                  <ChevronRight className="size-4" />
+                </button>
               </div>
             </>
           )}

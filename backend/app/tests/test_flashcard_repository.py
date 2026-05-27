@@ -38,18 +38,17 @@ class FlashcardRepositoryTest(TestCase):
     def test_get_random_cards_seeds_and_limits_query(self):
         db = MagicMock()
         cards = [
-            Flashcard(word="Hello", sign_data={"label": "hello"}),
-            Flashcard(word="Yes", sign_data={"label": "yes"}),
+            Flashcard(word="gà", sign_data={"mp4_url": "https://example.com/ga.mp4"}),
+            Flashcard(word="tivi", sign_data={"mp4_url": "https://example.com/tivi.mp4"}),
         ]
         query = db.query.return_value
-        query.order_by.return_value.limit.return_value.all.return_value = cards
+        query.filter.return_value.order_by.return_value.all.return_value = cards
         repo = FlashcardRepository(db)
-        repo.seed_defaults_if_empty = MagicMock()
+        repo.sync_default_flashcards = MagicMock()
 
         result = repo.get_random_cards(limit=2)
 
-        repo.seed_defaults_if_empty.assert_called_once()
-        query.order_by.return_value.limit.assert_called_once_with(2)
+        repo.sync_default_flashcards.assert_called_once()
         self.assertEqual(result, cards)
 
     def test_get_user_score_returns_existing_score(self):
