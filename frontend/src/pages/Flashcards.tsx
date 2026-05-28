@@ -47,7 +47,7 @@ export const Flashcards = () => {
     recordAnswer,
     submitScore,
     refetch,
-  } = useFlashcards(9);
+  } = useFlashcards(10);
   const [selectedAnswer, setSelectedAnswer] = useState('');
   const [hasAnswered, setHasAnswered] = useState(false);
 
