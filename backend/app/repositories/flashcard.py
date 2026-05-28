@@ -1,20 +1,59 @@
+from pathlib import Path
+from urllib.parse import quote
 from uuid import UUID
 
-from sqlalchemy import func
+from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 
 from models import Flashcard, UserFlashcardScore
 
 
+MEDIA_KEYS = ("video_url", "mp4_url", "video_mp4", "video_src", "media_url", "src")
+MEDIA_BASE_URL = "http://127.0.0.1:8000/media/flashcards"
+FLASHCARD_VIDEO_DIR = Path(__file__).resolve().parent / "flashcard_vid"
+
+
+def flashcard_video_url(filename: str) -> str:
+    return f"{MEDIA_BASE_URL}/{quote(filename)}"
+
+
+def is_video_file_url(url: str | None) -> bool:
+    if not url:
+        return False
+
+    clean_url = url.split("?")[0].lower()
+    return clean_url.endswith((".mp4", ".webm", ".ogg"))
+
+
+def has_media_url(sign_data: dict | None) -> bool:
+    if not isinstance(sign_data, dict):
+        return False
+
+    return any(is_video_file_url(str(sign_data.get(key) or "")) for key in MEDIA_KEYS)
+
+
+def build_flashcard(word: str, filename: str, source_slug: str) -> dict:
+    return {
+        "word": word,
+        "sign_data": {
+            "mp4_url": flashcard_video_url(filename),
+            "source_url": f"https://ngonngukyhieu.com/tu-ngu/{source_slug}",
+            "description": f"Ký hiệu cho từ {word}",
+        },
+    }
+
+
 DEFAULT_FLASHCARDS = [
-    {"word": "Hello", "sign_data": {"label": "👋", "description": "Greeting"}},
-    {"word": "Thank you", "sign_data": {"label": "🙏", "description": "Thanks"}},
-    {"word": "Love", "sign_data": {"label": "❤️", "description": "Love"}},
-    {"word": "Yes", "sign_data": {"label": "👍", "description": "Agreement"}},
-    {"word": "No", "sign_data": {"label": "✋", "description": "Refusal"}},
-    {"word": "Learn", "sign_data": {"label": "📘", "description": "Study"}},
-    {"word": "Friend", "sign_data": {"label": "🤝", "description": "Friend"}},
-    {"word": "Help", "sign_data": {"label": "🙌", "description": "Help"}},
+    build_flashcard("bà", "bà_-_614_-_tudienngonngukyhieu_v1 (240p).mp4", "ba-614"),
+    build_flashcard("gà", "gà_-_2232_-_tudienngonngukyhieu_v1 (240p).mp4", "ga-2232"),
+    build_flashcard("tivi", "ti_vi_-_1492_-_tudienngonngukyhieu (240p).mp4", "ti-vi-1492"),
+    build_flashcard("máy cày", "máy_cày_-_1399_-_tudienngonngukyhieu (240p).mp4", "may-cay-1399"),
+    build_flashcard("lắc", "lắc_-_1383_-_tudienngonngukyhieu (240p).mp4", "lac-1383"),
+    build_flashcard("màn hình", "màn_hình_-_441_-_tudienngonngukyhieu (240p).mp4", "man-hinh-441"),
+    build_flashcard("mật khẩu", "mật_khẩu_-_117_-_tudienngonngukyhieu (240p).mp4", "mat-khau-117"),
+    build_flashcard("sao chép", "sao_chép_-_146_-_tudienngonngukyhieu (240p).mp4", "sao-chep-146"),
+    build_flashcard("bàn phím", "bàn_phím_-_437_-_tudienngonngukyhieu (240p).mp4", "ban-phim-437"),
+    build_flashcard("treo máy", "treo_máy_-_155_-_tudienngonngukyhieu_v1 (240p).mp4", "treo-may-155"),
 ]
 
 
@@ -32,14 +71,39 @@ class FlashcardRepository:
         )
         self.db.commit()
 
+    def sync_default_flashcards(self) -> None:
+        changed = False
+
+        for item in DEFAULT_FLASHCARDS:
+            existing_card = (
+                self.db.query(Flashcard)
+                .filter(Flashcard.word == item["word"])
+                .first()
+            )
+
+            if existing_card:
+                if existing_card.sign_data != item["sign_data"]:
+                    existing_card.sign_data = item["sign_data"]
+                    changed = True
+                continue
+
+            self.db.add(Flashcard(word=item["word"], sign_data=item["sign_data"]))
+            changed = True
+
+        if changed:
+            self.db.commit()
+
     def get_random_cards(self, limit: int) -> list[Flashcard]:
-        self.seed_defaults_if_empty()
-        return (
+        self.sync_default_flashcards()
+
+        candidates = (
             self.db.query(Flashcard)
+            .filter(or_(*(Flashcard.sign_data.op("?")(key) for key in MEDIA_KEYS)))
             .order_by(func.random())
-            .limit(limit)
             .all()
         )
+
+        return [card for card in candidates if has_media_url(card.sign_data)][:limit]
 
     def get_user_score(self, user_id: UUID) -> UserFlashcardScore:
         score = (

@@ -45,6 +45,7 @@ Base.metadata.create_all(bind=engine)
 ensure_user_profile_columns(engine)
 UPLOAD_DIR = Path(__file__).resolve().parent / "uploads"
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+FLASHCARD_VIDEO_DIR = Path(__file__).resolve().parent / "repositories" / "flashcard_vid"
 
 
 def ensure_chat_schema() -> None:
@@ -110,6 +111,7 @@ app.add_middleware(
 )
 
 app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
+app.mount("/media/flashcards", StaticFiles(directory=FLASHCARD_VIDEO_DIR), name="flashcard-videos")
 
 app.include_router(router)
 

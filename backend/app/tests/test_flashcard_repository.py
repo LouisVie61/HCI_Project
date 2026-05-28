@@ -1,13 +1,35 @@
 from types import SimpleNamespace
 from unittest import TestCase
 from unittest.mock import MagicMock
+from urllib.parse import unquote, urlsplit
 from uuid import uuid4
 
 from models import Flashcard, UserFlashcardScore
-from repositories.flashcard import DEFAULT_FLASHCARDS, FlashcardRepository
+from repositories.flashcard import (
+    DEFAULT_FLASHCARDS,
+    FLASHCARD_VIDEO_DIR,
+    FlashcardRepository,
+)
 
 
 class FlashcardRepositoryTest(TestCase):
+    def test_default_flashcards_cover_every_video_file(self):
+        video_files = {path.name for path in FLASHCARD_VIDEO_DIR.glob("*.mp4")}
+        seeded_files = {
+            unquote(urlsplit(item["sign_data"]["mp4_url"]).path.rsplit("/", 1)[-1])
+            for item in DEFAULT_FLASHCARDS
+        }
+
+        self.assertEqual(seeded_files, video_files)
+        self.assertEqual(len(DEFAULT_FLASHCARDS), 10)
+
+    def test_default_flashcards_all_have_source_and_mp4_urls(self):
+        for item in DEFAULT_FLASHCARDS:
+            sign_data = item["sign_data"]
+
+            self.assertTrue(sign_data["mp4_url"].endswith(".mp4"))
+            self.assertTrue(sign_data["source_url"].startswith("https://ngonngukyhieu.com/tu-ngu/"))
+
     def test_seed_defaults_adds_cards_when_table_is_empty(self):
         db = MagicMock()
         db.query.return_value.first.return_value = None
@@ -38,19 +60,34 @@ class FlashcardRepositoryTest(TestCase):
     def test_get_random_cards_seeds_and_limits_query(self):
         db = MagicMock()
         cards = [
-            Flashcard(word="Hello", sign_data={"label": "hello"}),
-            Flashcard(word="Yes", sign_data={"label": "yes"}),
+            Flashcard(word="gà", sign_data={"mp4_url": "https://example.com/ga.mp4"}),
+            Flashcard(word="tivi", sign_data={"mp4_url": "https://example.com/tivi.mp4"}),
         ]
         query = db.query.return_value
-        query.order_by.return_value.limit.return_value.all.return_value = cards
+        query.filter.return_value.order_by.return_value.all.return_value = cards
         repo = FlashcardRepository(db)
-        repo.seed_defaults_if_empty = MagicMock()
+        repo.sync_default_flashcards = MagicMock()
 
         result = repo.get_random_cards(limit=2)
 
-        repo.seed_defaults_if_empty.assert_called_once()
-        query.order_by.return_value.limit.assert_called_once_with(2)
+        repo.sync_default_flashcards.assert_called_once()
         self.assertEqual(result, cards)
+
+    def test_get_random_cards_filters_non_video_urls(self):
+        db = MagicMock()
+        cards = [
+            Flashcard(word="source only", sign_data={"source_url": "https://example.com/page"}),
+            Flashcard(word="web page", sign_data={"video_url": "https://example.com/page"}),
+            Flashcard(word="mp4", sign_data={"mp4_url": "https://example.com/video.mp4"}),
+        ]
+        query = db.query.return_value
+        query.filter.return_value.order_by.return_value.all.return_value = cards
+        repo = FlashcardRepository(db)
+        repo.sync_default_flashcards = MagicMock()
+
+        result = repo.get_random_cards(limit=10)
+
+        self.assertEqual([card.word for card in result], ["mp4"])
 
     def test_get_user_score_returns_existing_score(self):
         user_id = uuid4()
