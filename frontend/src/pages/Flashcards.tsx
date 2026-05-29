@@ -1,10 +1,57 @@
 import { useEffect, useMemo, useState } from 'react';
 import { CheckCircle2, ChevronRight, ExternalLink, RefreshCw, Trophy, XCircle } from 'lucide-react';
+import { flashcardApi } from '../api/endpoints';
 import { LoadingState, NoticeState, PanelShell, StatTile } from '../components/dashboard/DashboardShell';
 import { useFlashcards } from '../hooks';
 import type { Flashcard } from '../types';
 
 const shuffle = <T,>(items: T[]) => [...items].sort(() => Math.random() - 0.5);
+
+type Difficulty = 'easy' | 'medium' | 'hard';
+
+const difficultyOptions: Array<{ value: Difficulty; label: string; description: string }> = [
+  { value: 'easy', label: 'Easy', description: 'Core signs and short answer sets' },
+  { value: 'medium', label: 'Medium', description: 'ASL video embeds and mixed signs' },
+  { value: 'hard', label: 'Hard', description: 'Less common signs and close distractors' },
+];
+
+const createSignAslCard = (word: string, vidref: string, difficulty: Difficulty, options: string[]): Flashcard => ({
+  id: `signasl-${word}-${difficulty}`,
+  word,
+  sign_data: {
+    difficulty,
+    embed_provider: 'signasl',
+    signasl_ref: vidref,
+    source_url: `https://www.signasl.org/sign/${word}`,
+    options,
+  },
+});
+
+const easySignAslCards: Flashcard[] = [
+  createSignAslCard('baby', 'ddnhl4pfst', 'easy', ['baby', 'cabin', 'dance', 'face']),
+  createSignAslCard('cabin', '9kehzpinhq', 'easy', ['cabin', 'baby', 'key', 'game']),
+  createSignAslCard('dance', 'f6az5eoa6c', 'easy', ['dance', 'face', 'hair', 'ice']),
+  createSignAslCard('ear', 'himextn3ot', 'easy', ['ear', 'face', 'hair', 'key']),
+  createSignAslCard('face', 'hsjoa8fdnn', 'easy', ['face', 'ear', 'baby', 'dance']),
+  createSignAslCard('game', 'gk0ip6kiga', 'easy', ['game', 'cabin', 'jean', 'key']),
+  createSignAslCard('hair', '8tyzt5jve8', 'easy', ['hair', 'ear', 'ice', 'face']),
+  createSignAslCard('ice', 'xlfo0ujipf', 'easy', ['ice', 'hair', 'dance', 'baby']),
+  createSignAslCard('jean', 'nufr9tqwou', 'easy', ['jean', 'game', 'cabin', 'key']),
+  createSignAslCard('key', 'nxyla3fbkw', 'easy', ['key', 'cabin', 'game', 'ear']),
+];
+const easySignAslCardIds = new Set(easySignAslCards.map((card) => card.id));
+
+const signAslDemoCard: Flashcard = {
+  id: 'signasl-abductor-medium',
+  word: 'abductor',
+  sign_data: {
+    difficulty: 'medium',
+    embed_provider: 'signasl',
+    signasl_ref: 'lannrmx1ej',
+    source_url: 'https://www.signasl.org/sign/abductor',
+    options: ['abductor', 'adapter', 'actor', 'doctor'],
+  },
+};
 
 const getSignData = (card: Flashcard | null | undefined) => {
   const signData = card?.sign_data;
@@ -34,26 +81,116 @@ const isVideoFile = (url: string) => {
   return cleanUrl.endsWith('.mp4') || cleanUrl.endsWith('.webm') || cleanUrl.endsWith('.ogg');
 };
 
+const getDifficulty = (card: Flashcard): Difficulty | null => {
+  const signData = getSignData(card);
+  const rawDifficulty = String(signData.difficulty || signData.level || '').toLowerCase();
+
+  if (['easy', 'beginner', 'basic'].includes(rawDifficulty)) {
+    return 'easy';
+  }
+
+  if (['medium', 'intermediate'].includes(rawDifficulty)) {
+    return 'medium';
+  }
+
+  if (['hard', 'advanced', 'difficult'].includes(rawDifficulty)) {
+    return 'hard';
+  }
+
+  return null;
+};
+
+const SignAslVideo = ({ vidref }: { vidref: string }) => {
+  const [videoSrc, setVideoSrc] = useState('');
+  const [posterSrc, setPosterSrc] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadVideo = async () => {
+      setIsLoading(true);
+
+      try {
+        const response = await fetch(`https://embed-api.signasl.org/widgethtml/${vidref}?wordhint=`);
+        const html = await response.text();
+        const doc = new DOMParser().parseFromString(html, 'text/html');
+        const video = doc.querySelector('video');
+        const source = video?.querySelector('source');
+
+        if (isMounted) {
+          setVideoSrc(source?.getAttribute('src') || '');
+          setPosterSrc(video?.getAttribute('poster') || '');
+        }
+      } catch {
+        if (isMounted) {
+          setVideoSrc('');
+          setPosterSrc('');
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    void loadVideo();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [vidref]);
+
+  if (isLoading) {
+    return <div className="flex aspect-video w-full items-center justify-center text-sm font-semibold text-slate-300">Loading ASL video...</div>;
+  }
+
+  if (!videoSrc) {
+    return <div className="flex aspect-video w-full items-center justify-center text-sm font-semibold text-slate-300">Could not load this ASL video.</div>;
+  }
+
+  return (
+    <video
+      key={videoSrc}
+      src={videoSrc}
+      poster={posterSrc}
+      controls
+      muted
+      loop
+      playsInline
+      className="aspect-video w-full bg-slate-950 object-contain"
+    />
+  );
+};
+
 export const Flashcards = () => {
-  const {
-    cards,
-    currentCard,
-    currentIndex,
-    score,
-    userScore,
-    loading,
-    error,
-    nextCard,
-    recordAnswer,
-    submitScore,
-    refetch,
-  } = useFlashcards(10);
+  const { cards, userScore, loading, error, refetch } = useFlashcards(10);
+  const [selectedDifficulty, setSelectedDifficulty] = useState<Difficulty>('medium');
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [score, setScore] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState('');
   const [hasAnswered, setHasAnswered] = useState(false);
 
-  const progress = cards.length ? Math.round(((currentIndex + 1) / cards.length) * 100) : 0;
+  const practiceCards = useMemo(() => {
+    const cardsByDifficulty = cards.filter((card) => getDifficulty(card) === selectedDifficulty);
+
+    if (selectedDifficulty === 'easy') {
+      return [...easySignAslCards, ...cardsByDifficulty.filter((card) => !easySignAslCardIds.has(card.id))];
+    }
+
+    if (selectedDifficulty === 'medium') {
+      return [signAslDemoCard, ...cardsByDifficulty.filter((card) => card.id !== signAslDemoCard.id)];
+    }
+
+    return cardsByDifficulty;
+  }, [cards, selectedDifficulty]);
+
+  const currentCard = practiceCards[currentIndex];
+  const progress = practiceCards.length ? Math.round(((currentIndex + 1) / practiceCards.length) * 100) : 0;
   const mediaUrl = getMediaUrl(currentCard);
-  const sourceUrl = String(getSignData(currentCard).source_url || (!isVideoFile(mediaUrl) ? mediaUrl : ''));
+  const currentSignData = getSignData(currentCard);
+  const signAslVidref = String(currentSignData.signasl_ref || currentSignData.vidref || '');
+  const sourceUrl = String(currentSignData.source_url || (!isVideoFile(mediaUrl) ? mediaUrl : ''));
   const isCorrect = Boolean(currentCard && selectedAnswer === currentCard.word);
 
   const answerOptions = useMemo(() => {
@@ -78,6 +215,17 @@ export const Flashcards = () => {
     setHasAnswered(false);
   }, [currentCard?.id]);
 
+  useEffect(() => {
+    setCurrentIndex(0);
+    setScore(0);
+  }, [selectedDifficulty]);
+
+  useEffect(() => {
+    if (currentIndex >= practiceCards.length) {
+      setCurrentIndex(0);
+    }
+  }, [currentIndex, practiceCards.length]);
+
   const handleAnswer = (answer: string) => {
     if (!currentCard || hasAnswered) {
       return;
@@ -85,23 +233,28 @@ export const Flashcards = () => {
 
     setSelectedAnswer(answer);
     setHasAnswered(true);
-    void recordAnswer(answer === currentCard.word);
+    if (answer === currentCard.word) {
+      setScore((prev) => prev + 1);
+    }
   };
 
-  const handleNext = () => {
-    if (currentIndex === cards.length - 1) {
-      void submitScore();
+  const handleNext = async () => {
+    if (currentIndex === practiceCards.length - 1) {
+      await flashcardApi.recordScore(score, practiceCards.length);
+      setScore(0);
+      setCurrentIndex(0);
+      refetch();
       return;
     }
 
-    nextCard();
+    setCurrentIndex((prev) => prev + 1);
   };
 
   return (
     <PanelShell
       eyebrow="Flashcard"
-      title="Đoán ký hiệu qua video"
-      description="Xem video ký hiệu, chọn 1 trong 4 đáp án và lưu điểm sau lượt luyện."
+      title="Guess the ASL sign"
+      description="Watch the sign video, choose the correct answer, and save your score at the end of the round."
       action={
         <button
           type="button"
@@ -109,23 +262,45 @@ export const Flashcards = () => {
           className="inline-flex h-11 items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
         >
           <RefreshCw className="size-4" />
-          Bộ thẻ mới
+          New deck
         </button>
       }
     >
       <div className="grid gap-5 lg:grid-cols-[1fr_320px]">
         <section className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
-          {loading && <LoadingState label="Đang chuẩn bị flashcard..." />}
-          {error && <NoticeState tone="danger" title="Không tải được flashcard" message={error} />}
+          <div className="mb-5 grid gap-3 sm:grid-cols-3">
+            {difficultyOptions.map((option) => {
+              const isActive = selectedDifficulty === option.value;
+
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => setSelectedDifficulty(option.value)}
+                  className={`rounded-2xl border px-4 py-3 text-left transition ${
+                    isActive
+                      ? 'border-emerald-400 bg-emerald-50 text-emerald-900 ring-2 ring-emerald-100'
+                      : 'border-slate-200 bg-white text-slate-700 hover:border-emerald-200 hover:bg-emerald-50'
+                  }`}
+                >
+                  <span className="block text-sm font-bold">{option.label}</span>
+                  <span className="mt-1 block text-xs font-medium leading-5 text-slate-500">{option.description}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {loading && !currentCard && <LoadingState label="Preparing flashcards..." />}
+          {error && !currentCard && <NoticeState tone="danger" title="Could not load flashcards" message={error} />}
           {!loading && !error && !currentCard && (
-            <NoticeState tone="neutral" title="Chưa có flashcard" message="Backend chưa trả dữ liệu thẻ luyện tập." />
+            <NoticeState tone="neutral" title="No cards in this level" message="Add ASL cards with a matching difficulty level to practice here." />
           )}
 
           {currentCard && (
             <>
               <div className="mb-5 flex items-center justify-between gap-3">
                 <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
-                  Thẻ {currentIndex + 1}/{cards.length}
+                  Card {currentIndex + 1}/{practiceCards.length}
                 </span>
                 <span className="text-sm font-semibold text-emerald-700">{progress}%</span>
               </div>
@@ -135,7 +310,9 @@ export const Flashcards = () => {
               </div>
 
               <div className="overflow-hidden rounded-3xl border border-slate-200 bg-slate-950">
-                {mediaUrl && isVideoFile(mediaUrl) ? (
+                {signAslVidref ? (
+                  <SignAslVideo key={`${currentCard.id}-${signAslVidref}`} vidref={signAslVidref} />
+                ) : mediaUrl && isVideoFile(mediaUrl) ? (
                   <video
                     key={mediaUrl}
                     src={mediaUrl}
@@ -148,19 +325,19 @@ export const Flashcards = () => {
                   />
                 ) : (
                   <div className="flex aspect-video items-center justify-center px-6 text-center text-sm text-slate-300">
-                    Flashcard này chưa có file video MP4.
+                    This flashcard does not have a playable ASL video yet.
                   </div>
                 )}
               </div>
 
-              {sourceUrl && (
+              {sourceUrl && hasAnswered && (
                 <a
                   href={sourceUrl}
                   target="_blank"
                   rel="noreferrer"
                   className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-emerald-700 hover:text-emerald-800"
                 >
-                  Mở nguồn video
+                  Open video source
                   <ExternalLink className="size-4" />
                 </a>
               )}
@@ -200,7 +377,7 @@ export const Flashcards = () => {
                     isCorrect ? 'bg-emerald-50 text-emerald-800' : 'bg-rose-50 text-rose-800'
                   }`}
                 >
-                  {isCorrect ? 'Chính xác!' : `Chưa đúng. Đáp án là: ${currentCard.word}`}
+                  {isCorrect ? 'Correct!' : `Not quite. The answer is: ${currentCard.word}`}
                 </div>
               )}
 
@@ -211,7 +388,7 @@ export const Flashcards = () => {
                   disabled={!hasAnswered}
                   className="inline-flex h-11 items-center gap-2 rounded-2xl bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-45"
                 >
-                  {currentIndex === cards.length - 1 ? 'Lưu điểm' : 'Tiếp'}
+                  {currentIndex === practiceCards.length - 1 ? 'Save score' : 'Next'}
                   <ChevronRight className="size-4" />
                 </button>
               </div>
@@ -220,9 +397,9 @@ export const Flashcards = () => {
         </section>
 
         <aside className="grid content-start gap-4">
-          <StatTile label="Điểm lượt này" value={String(score)} icon={Trophy} />
-          <StatTile label="Tổng điểm" value={String(userScore?.total_score || 0)} icon={CheckCircle2} />
-          <StatTile label="Số lượt luyện" value={String(userScore?.attempts || 0)} icon={RefreshCw} />
+          <StatTile label="Round score" value={String(score)} icon={Trophy} />
+          <StatTile label="Total score" value={String(userScore?.total_score || 0)} icon={CheckCircle2} />
+          <StatTile label="Practice rounds" value={String(userScore?.attempts || 0)} icon={RefreshCw} />
         </aside>
       </div>
     </PanelShell>
