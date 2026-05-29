@@ -6,6 +6,7 @@ import { LessonPlayer } from '../pages/LessonPlayer';
 import { Flashcards } from '../pages/Flashcards';
 import { SignRecognition } from '../pages/SignRecognition';
 import { TextTranslate } from '../pages/TextTranslate';
+import { AslDictionary } from '../pages/AslDictionary';
 import { ChatAI } from '../pages/ChatAI';
 import { Profile } from '../pages/Profile';
 import { DashboardLayout } from '../components/dashboard/DashboardLayout';
@@ -32,6 +33,7 @@ export const AppRoutes = () => {
           <Route path="lessons" element={<Lessons />} />
           <Route path="lessons/:lessonId" element={<LessonPlayer />} />
           <Route path="flashcards" element={<Flashcards />} />
+          <Route path="dictionary" element={<AslDictionary />} />
           <Route path="recognition" element={<SignRecognition />} />
           <Route path="translate" element={<TextTranslate />} />
           <Route path="chat" element={<ChatAI />} />

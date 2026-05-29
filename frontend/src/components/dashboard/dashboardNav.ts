@@ -4,6 +4,7 @@ import {
   Camera,
   Languages,
   LayoutDashboard,
+  Library,
   Trophy,
   UserCircle,
   type LucideIcon,
@@ -16,11 +17,12 @@ export interface DashboardNavItem {
 }
 
 export const dashboardNavItems: DashboardNavItem[] = [
-  { label: 'Tổng quan', path: '/dashboard', icon: LayoutDashboard },
-  { label: 'Bài học', path: '/dashboard/lessons', icon: BookOpenCheck },
+  { label: 'Tong quan', path: '/dashboard', icon: LayoutDashboard },
+  { label: 'Bai hoc', path: '/dashboard/lessons', icon: BookOpenCheck },
   { label: 'Flashcard', path: '/dashboard/flashcards', icon: Trophy },
-  { label: 'Dịch ngôn ngữ ký hiệu', path: '/dashboard/recognition', icon: Camera },
-  { label: 'Dịch văn bản', path: '/dashboard/translate', icon: Languages },
+  { label: 'ASL Dictionary', path: '/dashboard/dictionary', icon: Library },
+  { label: 'Dich ngon ngu ky hieu', path: '/dashboard/recognition', icon: Camera },
+  { label: 'Dich van ban', path: '/dashboard/translate', icon: Languages },
   { label: 'Chat AI', path: '/dashboard/chat', icon: Bot },
-  { label: 'Hồ sơ', path: '/dashboard/profile', icon: UserCircle },
+  { label: 'Ho so', path: '/dashboard/profile', icon: UserCircle },
 ];

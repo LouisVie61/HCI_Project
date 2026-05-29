@@ -50,11 +50,26 @@ export const SkeletonPoseViewer = ({ src }: SkeletonPoseViewerProps) => {
   }
 
   return (
-    <pose-viewer
-      src={src}
-      autoplay="true"
-      background="#f8fafc"
-      style={{ display: 'block', width: '100%', height: '100%' }}
-    />
+    <div className="flex h-full w-full items-center justify-center bg-slate-50">
+      <pose-viewer
+        src={src}
+        autoplay
+        loop
+        renderer="canvas"
+        background="#f8fafc"
+        width="100%"
+        height="100%"
+        padding="0.08"
+        aspectRatio={1}
+        thickness={2.5}
+        style={{
+          display: 'block',
+          width: 'min(100%, 520px)',
+          height: '100%',
+          maxHeight: '100%',
+          margin: '0 auto',
+        }}
+      />
+    </div>
   );
 };
