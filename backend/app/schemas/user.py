@@ -17,7 +17,18 @@ class UserBase(BaseModel):
 
 
 class UserCreate(UserBase):
+    full_name: str
     password: str
+
+    @field_validator("full_name")
+    @classmethod
+    def validate_full_name(cls, value: str) -> str:
+        normalized_name = value.strip()
+        if not normalized_name:
+            raise ValueError("Full name is required")
+        if len(normalized_name) > 120:
+            raise ValueError("Full name must be 120 characters or fewer")
+        return normalized_name
 
     @field_validator("password")
     @classmethod
@@ -89,6 +100,10 @@ class UserResponse(UserBase):
 class UserLogin(BaseModel):
     email: str
     password: str
+
+
+class GoogleAuthRequest(BaseModel):
+    credential: str
 
 
 class TokenResponse(BaseModel):
