@@ -45,9 +45,9 @@ declare global {
 }
 
 const difficultyLabels = {
-  beginner: 'Cơ bản',
-  intermediate: 'Trung bình',
-  advanced: 'Nâng cao',
+  beginner: 'Beginner',
+  intermediate: 'Intermediate',
+  advanced: 'Advanced',
 } as const;
 
 const loadYouTubeIframeApi = () =>
@@ -295,8 +295,8 @@ export const LessonPlayer = () => {
   return (
     <PanelShell
       eyebrow="Learning"
-      title={lesson?.title || 'Đang học'}
-      description={lesson?.description || 'Theo dõi video bài học và lưu tiến độ tự động.'}
+      title={lesson?.title || 'Lesson Player'}
+      description={lesson?.description || 'Watch the lesson video and save progress automatically.'}
       action={
         <button
           type="button"
@@ -304,14 +304,14 @@ export const LessonPlayer = () => {
           className="inline-flex h-11 items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
         >
           <ArrowLeft className="size-4" />
-          Quay lại
+          Back
         </button>
       }
     >
-      {loading && <LoadingState label="Đang tải bài học..." />}
-      {error && <NoticeState tone="danger" title="Không tải được bài học" message={error} />}
+      {loading && <LoadingState label="Loading lesson..." />}
+      {error && <NoticeState tone="danger" title="Could not load lesson" message={error} />}
       {!loading && !error && !lesson && (
-        <NoticeState tone="neutral" title="Không tìm thấy bài học" message="Bài học không tồn tại hoặc chưa được mở." />
+        <NoticeState tone="neutral" title="Lesson not found" message="This lesson does not exist or is not available." />
       )}
 
       {lesson && (
@@ -328,7 +328,7 @@ export const LessonPlayer = () => {
                 className="inline-flex h-11 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <RefreshCw className="size-4" />
-                Học lại từ đầu
+                Restart lesson
               </button>
               <button
                 type="button"
@@ -337,15 +337,15 @@ export const LessonPlayer = () => {
                 className="inline-flex h-11 items-center gap-2 rounded-xl bg-emerald-600 px-4 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <CheckCircle2 className="size-4" />
-                Đánh dấu hoàn thành
+                Mark as completed
               </button>
             </div>
           </div>
 
           <div className="mb-5">
             <div className="mb-2 flex flex-wrap items-center justify-between gap-3">
-              <span className="text-sm font-semibold text-emerald-700">Tiến độ: {progressPercent ?? 0}%</span>
-              {savingProgress && <span className="text-sm font-medium text-slate-500">Đang lưu tiến độ...</span>}
+              <span className="text-sm font-semibold text-emerald-700">Progress: {progressPercent ?? 0}%</span>
+              {savingProgress && <span className="text-sm font-medium text-slate-500">Saving progress...</span>}
             </div>
             <div className="h-2 overflow-hidden rounded-full bg-slate-100">
               <div
@@ -355,7 +355,7 @@ export const LessonPlayer = () => {
             </div>
             {progressError && (
               <p className="mt-3 rounded-xl bg-red-50 px-3 py-2 text-sm font-medium text-red-700">
-                Không ghi được tiến độ: {progressError}
+                Could not save progress: {progressError}
               </p>
             )}
           </div>
@@ -366,7 +366,7 @@ export const LessonPlayer = () => {
             </div>
           ) : (
             <div className="flex min-h-[360px] flex-col items-center justify-center rounded-2xl bg-slate-100 p-6 text-center">
-              <p className="text-sm font-medium text-slate-600">Link video không đúng định dạng YouTube.</p>
+              <p className="text-sm font-medium text-slate-600">This video link is not a valid YouTube URL.</p>
             </div>
           )}
         </section>
