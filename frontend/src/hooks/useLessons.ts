@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
-import { Lesson, LessonProgress } from '../types';
+import type { Lesson, LessonProgress } from '../types';
 import { lessonApi } from '../api/endpoints';
 import { useAsync } from './useAsync';
 
