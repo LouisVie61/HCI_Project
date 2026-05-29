@@ -4,7 +4,7 @@ from fastapi import APIRouter, HTTPException, status, Depends, UploadFile, File
 from sqlalchemy.orm import Session
 from core.database import get_db
 from core.config import settings
-from schemas import UserCreate, UserLogin, UserUpdate, TokenResponse, UserResponse, ErrorResponse
+from schemas import UserCreate, UserLogin, UserUpdate, GoogleAuthRequest, TokenResponse, UserResponse, ErrorResponse
 from services import AuthService
 from api.v1.dependencies import get_current_user
 import traceback
@@ -61,6 +61,29 @@ async def login(
         )
     except Exception as e:
         print(f"Login error: {str(e)}")
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Internal server error: {str(e)}",
+        )
+
+
+@router.post("/google", response_model=TokenResponse)
+async def google_auth(
+    request: GoogleAuthRequest,
+    db: Session = Depends(get_db),
+):
+    """Sign up or login with a Google account credential."""
+    try:
+        auth_service = AuthService(db)
+        return auth_service.google_auth(request.credential)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
+    except Exception as e:
+        print(f"Google auth error: {str(e)}")
         traceback.print_exc()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

@@ -11,10 +11,11 @@ class UserRepository:
     def __init__(self, db: Session):
         self.db = db
 
-    def create(self, email: str, password: str) -> User:
+    def create(self, email: str, password: str, full_name: str | None = None) -> User:
         """Create a new user"""
         user = User(
             email=email,
+            full_name=full_name,
             password_hash=hash_password(password),
         )
         self.db.add(user)

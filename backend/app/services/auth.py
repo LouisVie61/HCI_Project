@@ -1,5 +1,9 @@
 from sqlalchemy.orm import Session
 from datetime import timedelta
+from urllib import parse, request
+import json
+from uuid import uuid4
+
 from schemas import UserCreate, UserLogin, UserUpdate, TokenResponse, UserResponse
 from repositories import UserRepository
 from core.security import create_access_token
@@ -21,9 +25,67 @@ class AuthService:
             raise ValueError("Email already registered")
 
         # Create user
-        user = self.user_repo.create(user_create.email, user_create.password)
+        user = self.user_repo.create(
+            user_create.email,
+            user_create.password,
+            user_create.full_name,
+        )
 
-        # Create token
+        return self._create_token_response(user)
+
+    def google_auth(self, credential: str) -> TokenResponse:
+        """Create or login a user using a Google ID token credential."""
+        if not settings.GOOGLE_CLIENT_ID:
+            raise ValueError("Google sign-up is not configured")
+
+        profile = self._verify_google_credential(credential)
+        email = profile.get("email", "").strip().lower()
+        full_name = (profile.get("name") or email.split("@")[0]).strip()
+        avatar_url = profile.get("picture")
+
+        if not email:
+            raise ValueError("Google account did not provide an email")
+
+        user = self.user_repo.get_by_email(email)
+        if not user:
+            user = self.user_repo.create(
+                email=email,
+                password=uuid4().hex + uuid4().hex,
+                full_name=full_name,
+            )
+            if avatar_url:
+                user.avatar_url = avatar_url
+                self.db.add(user)
+                self.db.commit()
+                self.db.refresh(user)
+        elif not user.full_name and full_name:
+            user.full_name = full_name
+            if avatar_url and not user.avatar_url:
+                user.avatar_url = avatar_url
+            self.db.add(user)
+            self.db.commit()
+            self.db.refresh(user)
+
+        return self._create_token_response(user)
+
+    def _verify_google_credential(self, credential: str) -> dict:
+        params = parse.urlencode({"id_token": credential})
+        url = f"https://oauth2.googleapis.com/tokeninfo?{params}"
+
+        try:
+            with request.urlopen(url, timeout=8) as response:
+                payload = json.loads(response.read().decode("utf-8"))
+        except Exception as exc:
+            raise ValueError(f"Google credential verification failed: {exc}") from exc
+
+        if payload.get("aud") != settings.GOOGLE_CLIENT_ID:
+            raise ValueError("Google credential audience is invalid")
+        if payload.get("email_verified") not in {"true", True}:
+            raise ValueError("Google email is not verified")
+
+        return payload
+
+    def _create_token_response(self, user) -> TokenResponse:
         access_token = create_access_token(
             data={"sub": str(user.id)},
             expires_delta=timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES),
@@ -45,16 +107,7 @@ class AuthService:
         if not self.user_repo.verify_password(user, user_login.password):
             raise ValueError("Invalid email or password")
 
-        # Create token
-        access_token = create_access_token(
-            data={"sub": str(user.id)},
-            expires_delta=timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES),
-        )
-
-        return TokenResponse(
-            access_token=access_token,
-            user=UserResponse.from_orm(user),
-        )
+        return self._create_token_response(user)
 
     def get_current_user(self, token: str) -> UserResponse:
         """Get current user from token"""

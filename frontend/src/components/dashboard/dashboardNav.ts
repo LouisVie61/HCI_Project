@@ -19,8 +19,8 @@ export const dashboardNavItems: DashboardNavItem[] = [
   { label: 'Tổng quan', path: '/dashboard', icon: LayoutDashboard },
   { label: 'Bài học', path: '/dashboard/lessons', icon: BookOpenCheck },
   { label: 'Flashcard', path: '/dashboard/flashcards', icon: Trophy },
-  { label: 'Nhận diện', path: '/dashboard/recognition', icon: Camera },
-  { label: 'Dịch text', path: '/dashboard/translate', icon: Languages },
+  { label: 'Dịch ngôn ngữ ký hiệu', path: '/dashboard/recognition', icon: Camera },
+  { label: 'Dịch văn bản', path: '/dashboard/translate', icon: Languages },
   { label: 'Chat AI', path: '/dashboard/chat', icon: Bot },
   { label: 'Hồ sơ', path: '/dashboard/profile', icon: UserCircle },
 ];

@@ -121,7 +121,11 @@ async function streamChatMessage(message: string, history: ChatHistoryMessage[],
 export const authApi = {
   login: (email: string, password: string) => api.post("/api/v1/auth/login", { email, password }),
 
-  signup: (email: string, password: string) => api.post("/api/v1/auth/signup", { email, password }),
+  signup: (fullName: string, email: string, password: string) =>
+    api.post("/api/v1/auth/signup", { full_name: fullName, email, password }),
+
+  google: (credential: string) =>
+    api.post("/api/v1/auth/google", { credential }),
 
   logout: () => api.post("/api/v1/auth/logout", {}),
 

@@ -69,12 +69,38 @@ export const useAuth = () => {
     }
   }, []);
 
-  const signup = useCallback(async (email: string, password: string) => {
+  const signup = useCallback(async (fullName: string, email: string, password: string) => {
     setLoading(true);
     setError(null);
 
     try {
-      const result = await authApi.signup(email, password);
+      const result = await authApi.signup(fullName, email, password);
+
+      if (result.error) {
+        setError(result.error);
+        return false;
+      }
+
+      const authData = result.data as AuthResponse;
+      localStorageHelper.setItem(AUTH_STORAGE_KEY, authData.access_token);
+      localStorageHelper.setItem(USER_STORAGE_KEY, authData.user);
+      setUser(authData.user);
+      return true;
+    } catch (err) {
+      const errorMsg = errorHandler.format(err);
+      setError(errorMsg);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const googleAuth = useCallback(async (credential: string) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const result = await authApi.google(credential);
 
       if (result.error) {
         setError(result.error);
@@ -172,6 +198,7 @@ export const useAuth = () => {
     error,
     login,
     signup,
+    googleAuth,
     updateProfile,
     uploadAvatar,
     logout,
