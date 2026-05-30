@@ -70,9 +70,13 @@ temp/
 *.bak
 *.backup
 
+# Large flashcard video metadata
+repositories/flashcard_vid/WLASL_v0.3.json
+
 # Poetry
 poetry.lock
 
 # pip
 pip-log.txt
 pip-delete-this-directory.txt
+
