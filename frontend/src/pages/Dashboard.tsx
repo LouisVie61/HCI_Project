@@ -4,26 +4,32 @@ import { Link } from 'react-router-dom';
 const quickActions = [
   {
     path: '/dashboard/lessons',
-    title: 'Hoc bai moi',
-    description: 'Xem danh sach bai hoc va noi dung huong dan.',
+    title: 'Start a lesson',
+    description: 'Browse lessons and guided learning content.',
     icon: BookOpenCheck,
   },
   {
     path: '/dashboard/flashcards',
-    title: 'Luyen flashcard',
-    description: 'On lai tu vung bang the tuong tac.',
+    title: 'Practice flashcards',
+    description: 'Review vocabulary with interactive cards.',
     icon: Trophy,
   },
   {
+    path: '/dashboard/dictionary',
+    title: 'ASL Dictionary',
+    description: 'Look up signs and signing guidance.',
+    icon: BookOpenCheck,
+  },
+  {
     path: '/dashboard/translate',
-    title: 'Dich van ban',
-    description: 'Chuyen cau ngan thanh chuoi ky hieu.',
+    title: 'Text to sign',
+    description: 'Convert short text into sign language output.',
     icon: Languages,
   },
   {
     path: '/dashboard/recognition',
-    title: 'Thu camera',
-    description: 'Mo camera de chuan bi nhan dien ky hieu.',
+    title: 'Try camera',
+    description: 'Use your webcam to recognize signs.',
     icon: Camera,
   },
 ];
@@ -35,14 +41,13 @@ export const Dashboard = () => (
         <div>
           <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-sm text-emerald-100">
             <Sparkles className="size-4" />
-            Dashboard hoc tap ca nhan
+            Personal learning dashboard
           </div>
           <h2 className="max-w-2xl text-3xl font-semibold leading-tight sm:text-4xl">
-            Chon mot hoat dong va bat dau luyen ngon ngu ky hieu ngay.
+            Choose an activity and start practicing sign language.
           </h2>
           <p className="mt-4 max-w-xl text-sm leading-6 text-slate-300">
-            Day la trang tong quan. Cac chuc nang hoc bai, flashcard, dich text, nhan dien camera va chat AI da duoc
-            tach sang route rieng de de mo rong.
+            This overview brings together lessons, flashcards, text translation, camera recognition, and AI chat in one place.
           </p>
           <div className="mt-7 flex flex-wrap gap-3">
             <Link
@@ -50,34 +55,34 @@ export const Dashboard = () => (
               className="inline-flex h-12 items-center gap-2 rounded-2xl bg-emerald-500 px-5 text-sm font-semibold text-slate-950 transition hover:bg-emerald-400"
             >
               <Play className="size-4" />
-              Bat dau hoc
+              Start learning
             </Link>
             <Link
               to="/dashboard/chat"
               className="inline-flex h-12 items-center gap-2 rounded-2xl border border-white/15 bg-white/10 px-5 text-sm font-semibold text-white transition hover:bg-white/15"
             >
               <MessageSquareText className="size-4" />
-              Hoi AI
+              Ask AI
             </Link>
           </div>
         </div>
 
         <div className="grid content-end gap-3">
           <div className="rounded-3xl border border-white/10 bg-white/10 p-5">
-            <p className="text-sm text-slate-300">Chuc nang</p>
+            <p className="text-sm text-slate-300">Features</p>
             <p className="mt-2 text-3xl font-semibold text-white">6</p>
-            <p className="mt-1 text-xs text-slate-400">Tach thanh route rieng</p>
+            <p className="mt-1 text-xs text-slate-400">Available as dedicated pages</p>
           </div>
           <div className="rounded-3xl border border-white/10 bg-white/10 p-5">
-            <p className="text-sm text-slate-300">Trang thai</p>
+            <p className="text-sm text-slate-300">Status</p>
             <p className="mt-2 text-3xl font-semibold text-white">Demo</p>
-            <p className="mt-1 text-xs text-slate-400">San sang ket noi backend</p>
+            <p className="mt-1 text-xs text-slate-400">Ready for backend integration</p>
           </div>
         </div>
       </div>
     </section>
 
-    <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+    <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
       {quickActions.map((action) => {
         const Icon = action.icon;
 
@@ -85,7 +90,7 @@ export const Dashboard = () => (
           <Link
             key={action.path}
             to={action.path}
-            className="group rounded-3xl border border-slate-200 bg-white p-5 text-left shadow-sm transition hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-200"
+            className="group flex h-full flex-col rounded-3xl border border-slate-200 bg-white p-5 text-left shadow-sm transition hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-200"
           >
             <div className="mb-5 flex size-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-950 transition group-hover:bg-slate-950 group-hover:text-white">
               <Icon className="size-6" />

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ChangeEvent, type ClipboardEvent, type KeyboardEvent } from "react";
+﻿import { useEffect, useRef, useState, type ChangeEvent, type ClipboardEvent, type KeyboardEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, BookOpenText, Bot, File, FileImage, FileText, FileVideo, LoaderCircle, MessageSquareText, Paperclip, Plus, SendHorizonal, Sparkles, Trash2, UserRound, X } from "lucide-react";
 
@@ -8,41 +8,41 @@ import { useAuth, useChat } from "../hooks";
 import { cn } from "../lib/utils";
 import { ChatAttachment, ChatAttachmentKind, ChatConversationSummary, ChatMessage, ComposerAttachment } from "../types";
 
-const STARTER_PROMPTS = ['Giải thích ký hiệu "xin chào" theo cách dễ hiểu cho người mới.', "Lập cho tôi kế hoạch học flashcard ngôn ngữ ký hiệu trong 7 ngày.", "Tạo một đoạn hội thoại ngắn để luyện giao tiếp cơ bản bằng ký hiệu.", "Cho tôi 5 mẹo để ghi nhớ từ vựng ký hiệu nhanh hơn."];
+const STARTER_PROMPTS = ['Explain the sign for hello in a beginner-friendly way.', 'Create a 7-day flashcard study plan for sign language.', 'Create a short dialogue for basic sign language practice.', 'Give me 5 tips for remembering sign vocabulary faster.'];
 
 const SIDEBAR_NOTES = [
   {
     icon: Sparkles,
-    title: "Giải thích đơn giản",
-    description: "Phù hợp cho người mới học, trả lời bằng tiếng Việt tự nhiên.",
+    title: "Simple explanations",
+    description: "Beginner-friendly answers in natural English.",
   },
   {
     icon: BookOpenText,
-    title: "Học theo ngữ cảnh",
-    description: "Có thể xin ví dụ hội thoại, flashcard và lộ trình luyện tập.",
+    title: "Learn in context",
+    description: "Ask for dialogue examples, flashcards, and practice plans.",
   },
   {
     icon: MessageSquareText,
-    title: "Giữ mạch hội thoại",
-    description: "AI nhận cả lịch sử chat để trả lời có ngữ cảnh hơn.",
+    title: "Conversation memory",
+    description: "The AI uses chat history for more contextual answers.",
   },
   {
     icon: Paperclip,
-    title: "Nhận ảnh và tệp",
-    description: "Có thể dán ảnh trực tiếp hoặc tải lên ảnh, video, file văn bản và tài liệu.",
+    title: "Images and files",
+    description: "Paste images directly or upload images, videos, text files, and documents.",
   },
 ];
 
 const MAX_COMPOSER_ATTACHMENTS = 5;
 
 const formatTime = (timestamp: string) =>
-  new Intl.DateTimeFormat("vi-VN", {
+  new Intl.DateTimeFormat("en-US", {
     hour: "2-digit",
     minute: "2-digit",
   }).format(new Date(timestamp));
 
 const formatConversationTime = (timestamp: string) =>
-  new Intl.DateTimeFormat("vi-VN", {
+  new Intl.DateTimeFormat("en-US", {
     day: "2-digit",
     month: "2-digit",
     hour: "2-digit",
@@ -169,7 +169,7 @@ function AttachmentCard({ attachment, tone, onRemove }: { attachment: ChatAttach
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-medium">{attachment.name}</p>
             <p className={cn("mt-1 text-xs", mutedTextClass)}>
-              {attachment.kind.toUpperCase()} • {formatFileSize(attachment.size_bytes)}
+              {attachment.kind.toUpperCase()} - {formatFileSize(attachment.size_bytes)}
             </p>
           </div>
         </div>
@@ -178,7 +178,7 @@ function AttachmentCard({ attachment, tone, onRemove }: { attachment: ChatAttach
 
         {resolvedUrl && !isVideo ? (
           <a href={resolvedUrl} target="_blank" rel="noreferrer" className={cn("mt-3 inline-flex text-xs font-medium transition-colors", actionTextClass)}>
-            Mở tệp
+            Open file
           </a>
         ) : null}
       </div>
@@ -205,7 +205,7 @@ function ConversationItem({ active, conversation, disabled, onDelete, onSelect }
     <div className={cn("group flex items-start gap-2 rounded-[20px] p-2 transition-colors", active ? "bg-slate-950 text-white" : "hover:bg-slate-100/90")}>
       <button type="button" onClick={() => void onSelect(conversation.id)} disabled={disabled} className="min-w-0 flex-1 rounded-[18px] px-3 py-2 text-left disabled:cursor-not-allowed">
         <p className={cn("truncate text-sm font-medium", active ? "text-white" : "text-slate-900")}>{conversation.title}</p>
-        <p className={cn("mt-1 truncate text-xs", active ? "text-slate-300" : "text-slate-500")}>{conversation.last_message_preview || "Chưa có phản hồi nào."}</p>
+        <p className={cn("mt-1 truncate text-xs", active ? "text-slate-300" : "text-slate-500")}>{conversation.last_message_preview || "No response yet."}</p>
         <p className="mt-2 text-[11px] text-slate-400">{formatConversationTime(conversation.updated_at)}</p>
       </button>
 
@@ -320,7 +320,7 @@ export const ChatAI = () => {
   const addComposerFiles = (files: File[]) => {
     const nonEmptyFiles = files.filter((file) => file.size > 0);
     if (!nonEmptyFiles.length) {
-      setComposerError("Không có tệp hợp lệ để đính kèm.");
+      setComposerError("There are no valid files to attach.");
       return;
     }
 
@@ -340,11 +340,11 @@ export const ChatAI = () => {
       const acceptedFiles = uniqueFiles.slice(0, slotsLeft);
 
       if (!acceptedFiles.length) {
-        setComposerError(current.length >= MAX_COMPOSER_ATTACHMENTS ? `Chỉ có thể đính kèm tối đa ${MAX_COMPOSER_ATTACHMENTS} tệp mỗi lượt.` : "Các tệp này đã có sẵn trong khung gửi.");
+        setComposerError(current.length >= MAX_COMPOSER_ATTACHMENTS ? `You can attach up to ${MAX_COMPOSER_ATTACHMENTS} files per message.` : "These files are already in the composer.");
         return current;
       }
 
-      setComposerError(uniqueFiles.length > acceptedFiles.length ? `Chỉ giữ tối đa ${MAX_COMPOSER_ATTACHMENTS} tệp trong một lượt gửi.` : null);
+      setComposerError(uniqueFiles.length > acceptedFiles.length ? `Only keeping up to ${MAX_COMPOSER_ATTACHMENTS} files in one message.` : null);
       return [...current, ...acceptedFiles.map(createComposerAttachment)];
     });
   };
@@ -405,26 +405,26 @@ export const ChatAI = () => {
             <div className="inline-flex items-center gap-2 rounded-full bg-cyan-950 px-4 py-2 text-sm font-semibold text-cyan-50">
               <Bot className="size-4" /> GPT-5 Nano
             </div>
-            <h1 className="mt-5 text-[28px] font-semibold tracking-tight text-slate-950">Chat AI cho học ngôn ngữ ký hiệu</h1>
-            <p className="mt-3 text-sm leading-6 text-slate-600">Giao diện theo kiểu ChatGPT, lưu thread và hỗ trợ ảnh, video, file ngay trong cuộc trò chuyện.</p>
+            <h1 className="mt-5 text-[28px] font-semibold tracking-tight text-slate-950">AI Chat for Sign Language Learning</h1>
+            <p className="mt-3 text-sm leading-6 text-slate-600">A ChatGPT-style interface with saved threads and support for images, videos, and files.</p>
           </div>
 
           <Button onClick={handleNewConversation} disabled={loading} className="mt-6 justify-start rounded-2xl bg-slate-950 text-white hover:bg-slate-800">
             <Plus className="mr-2 size-4" />
-            Cuộc chat mới
+            New chat
           </Button>
 
           <div className="mt-6 min-h-0 flex-1 overflow-hidden rounded-[26px] border border-slate-200 bg-slate-50/80 p-3">
             <div className="mb-3 flex items-center justify-between px-2">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Lịch sử chat</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Chat history</p>
               {loadingHistory ? <LoaderCircle className="size-4 animate-spin text-slate-400" /> : <span className="text-[11px] text-slate-400">{conversations.length} thread</span>}
             </div>
 
-            <div className="min-h-0 space-y-1.5 overflow-y-auto pr-1">{conversations.length ? conversations.map((conversation) => <ConversationItem key={conversation.id} active={conversation.id === activeConversationId} conversation={conversation} disabled={loading} onDelete={deleteConversation} onSelect={selectConversation} />) : <div className="rounded-[22px] border border-dashed border-slate-300 bg-white/70 p-4 text-sm leading-6 text-slate-500">Chưa có lịch sử chat. Hãy bắt đầu một cuộc hội thoại mới để lưu lại như ChatGPT.</div>}</div>
+            <div className="min-h-0 space-y-1.5 overflow-y-auto pr-1">{conversations.length ? conversations.map((conversation) => <ConversationItem key={conversation.id} active={conversation.id === activeConversationId} conversation={conversation} disabled={loading} onDelete={deleteConversation} onSelect={selectConversation} />) : <div className="rounded-[22px] border border-dashed border-slate-300 bg-white/70 p-4 text-sm leading-6 text-slate-500">No chat history yet. Start a new conversation to save it like ChatGPT.</div>}</div>
           </div>
 
           <div className="mt-4 rounded-[24px] border border-dashed border-slate-300 bg-white/70 p-4 text-sm text-slate-600">
-            <p className="font-medium text-slate-900">Người dùng hiện tại</p>
+            <p className="font-medium text-slate-900">Current user</p>
             <p className="mt-2 break-all">{user?.email}</p>
           </div>
         </aside>
@@ -438,14 +438,14 @@ export const ChatAI = () => {
                   Dashboard
                 </Button>
                 <div>
-                  <p className="text-sm font-semibold text-slate-950">{activeConversation?.title || "Cuộc chat mới"}</p>
-                  <p className="text-sm text-slate-500">OpenRouter • GPT-5 Nano • history thread + streaming + attachments</p>
+                  <p className="text-sm font-semibold text-slate-950">{activeConversation?.title || "New chat"}</p>
+                  <p className="text-sm text-slate-500">OpenRouter - GPT-5 Nano - history thread + streaming + attachments</p>
                 </div>
               </div>
 
               <Button variant="ghost" onClick={() => (activeConversationId ? void deleteConversation(activeConversationId) : handleNewConversation())} disabled={loading || (!activeConversationId && !messages.length && !input && !composerAttachments.length)}>
                 <Trash2 className="mr-2 size-4" />
-                {activeConversationId ? "Xóa cuộc chat" : "Xóa bản nháp"}
+                {activeConversationId ? "Delete chat" : "Clear draft"}
               </Button>
             </div>
 
@@ -457,17 +457,17 @@ export const ChatAI = () => {
               <div className="flex h-full items-center justify-center">
                 <div className="inline-flex items-center gap-3 rounded-full border border-slate-200 bg-white px-5 py-3 text-sm text-slate-600 shadow-sm">
                   <LoaderCircle className="size-4 animate-spin" />
-                  Đang tải hội thoại...
+                  Loading conversation...
                 </div>
               </div>
             ) : !messages.length ? (
               <div className="mx-auto flex min-h-full w-full max-w-3xl flex-col justify-center py-4">
                 <div className="rounded-[32px] border border-slate-200 bg-[linear-gradient(135deg,rgba(255,255,255,0.92),rgba(241,245,249,0.96))] p-8 shadow-sm">
                   <div className="inline-flex items-center gap-2 rounded-full bg-amber-100 px-3 py-1 text-sm font-medium text-amber-900">
-                    <Sparkles className="size-4" /> Sẵn sàng hỗ trợ học tập
+                    <Sparkles className="size-4" /> Ready to support your learning
                   </div>
-                  <h2 className="mt-4 text-3xl font-semibold leading-tight text-slate-950">Hãy bắt đầu như đang nói chuyện với ChatGPT, nhưng tập trung vào học ngôn ngữ ký hiệu.</h2>
-                  <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600">Bạn có thể hỏi về ký hiệu, xin giải thích bài học, nhờ tạo flashcard, hoặc dán ảnh và file để AI đọc ngay trong luồng chat.</p>
+                  <h2 className="mt-4 text-3xl font-semibold leading-tight text-slate-950">Start like you are chatting with ChatGPT, but focused on sign language learning.</h2>
+                  <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600">Ask about signs, request lesson explanations, create flashcards, or paste images and files for AI to read in the chat.</p>
 
                   <div className="mt-8 grid gap-3 md:grid-cols-2">
                     {STARTER_PROMPTS.map((prompt) => (
@@ -511,7 +511,7 @@ export const ChatAI = () => {
               {error ? <div className="mb-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div> : null}
 
               <div className="rounded-[28px] border border-slate-200 bg-white p-3 shadow-sm">
-                <textarea value={input} onChange={(event) => setInput(event.target.value)} onKeyDown={(event) => void handleKeyDown(event)} onPaste={handlePaste} placeholder="Nhắn cho AI về ký hiệu, bài giảng, hoặc dán ảnh/tệp trực tiếp vào đây..." rows={3} disabled={loading || loadingHistory} className="min-h-[88px] w-full resize-none border-0 bg-transparent px-2 py-2 text-[15px] leading-7 text-slate-900 outline-none placeholder:text-slate-400 disabled:cursor-not-allowed" />
+                <textarea value={input} onChange={(event) => setInput(event.target.value)} onKeyDown={(event) => void handleKeyDown(event)} onPaste={handlePaste} placeholder="Message AI about signs, lessons, or paste images/files here..." rows={3} disabled={loading || loadingHistory} className="min-h-[88px] w-full resize-none border-0 bg-transparent px-2 py-2 text-[15px] leading-7 text-slate-900 outline-none placeholder:text-slate-400 disabled:cursor-not-allowed" />
 
                 {composerAttachments.length ? (
                   <div className="border-t border-slate-100 px-2 py-3">
@@ -520,19 +520,19 @@ export const ChatAI = () => {
                 ) : null}
 
                 <div className="flex flex-col gap-3 border-t border-slate-100 px-2 pt-3 sm:flex-row sm:items-center sm:justify-between">
-                  <p className="text-sm text-slate-500">Enter để gửi, Shift + Enter để xuống dòng.</p>
+                  <p className="text-sm text-slate-500">Enter to send, Shift + Enter for a new line.</p>
 
                   <div className="flex items-center gap-2">
                     <Button variant="outline" onClick={() => fileInputRef.current?.click()} disabled={loading || loadingHistory}>
                       <Paperclip className="mr-2 size-4" />
-                      Đính kèm
+                      Attach
                     </Button>
                     <Button variant="outline" onClick={() => setInput(STARTER_PROMPTS[0])} disabled={loading || loadingHistory}>
-                      Gợi ý mẫu
+                      Sample prompt
                     </Button>
                     <Button onClick={() => void handleSubmit()} disabled={loading || loadingHistory || (!input.trim() && !composerAttachments.length)}>
                       <SendHorizonal className="mr-2 size-4" />
-                      {loading ? "Đang trả lời..." : "Gửi"}
+                      {loading ? "Replying..." : "Send"}
                     </Button>
                   </div>
                 </div>

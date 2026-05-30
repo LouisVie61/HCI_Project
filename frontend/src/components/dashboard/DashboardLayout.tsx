@@ -21,7 +21,7 @@ export const DashboardLayout = () => {
       .find((item) => location.pathname === item.path || location.pathname.startsWith(`${item.path}/`)) ||
     dashboardNavItems[0];
 
-  const displayName = user?.full_name?.trim() || 'bạn';
+  const displayName = user?.full_name?.trim() || 'there';
   const avatarSrc = getAvatarSrc(user?.avatar_url);
 
   const handleLogout = async () => {
@@ -65,8 +65,8 @@ export const DashboardLayout = () => {
                 <Sparkles className="size-5" />
               </div>
               <div>
-                <p className="text-sm font-semibold text-emerald-950">Học đều mỗi ngày</p>
-                <p className="text-xs text-emerald-800">Hoàn thành một mục nhỏ là đủ tốt.</p>
+                <p className="text-sm font-semibold text-emerald-950">Practice every day</p>
+                <p className="text-xs text-emerald-800">One small task is enough to keep momentum.</p>
               </div>
             </div>
           </div>
@@ -77,7 +77,7 @@ export const DashboardLayout = () => {
             <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
               <div className="min-w-0">
                 <p className="text-sm font-medium text-emerald-700">{activeItem.label}</p>
-                <h1 className="truncate text-2xl font-semibold text-slate-950">Xin chào, {displayName}</h1>
+                <h1 className="truncate text-2xl font-semibold text-slate-950">Hello, {displayName}</h1>
               </div>
 
               <div className="flex items-center gap-3">
@@ -100,7 +100,7 @@ export const DashboardLayout = () => {
                   className="inline-flex h-11 items-center gap-2 rounded-2xl border border-rose-200 bg-white px-4 text-sm font-semibold text-rose-700 transition hover:bg-rose-50"
                 >
                   <LogOut className="size-4" />
-                  <span className="hidden sm:inline">Đăng xuất</span>
+                  <span className="hidden sm:inline">Log out</span>
                 </button>
               </div>
             </div>

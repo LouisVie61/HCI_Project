@@ -1,14 +1,14 @@
 import { useState } from 'react';
-import { ArrowRight, BadgeCheck, BookOpenCheck, Sparkles } from 'lucide-react';
+import { ArrowRight, BadgeCheck, BookOpenCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { LoginForm } from '../components/auth/LoginForm';
 import { SignupForm } from '../components/auth/SignupForm';
 
 const highlights = [
-  'Dịch song song giữa ngôn ngữ ký hiệu và văn bản',
-  'Học ngôn ngữ ký hiệu qua bài học trực quan',
-  'Luyện tập với phản hồi nhanh và dễ hiểu',
-  'Theo dõi tiến độ học tập trong dashboard',
+  'Translate between sign language and text',
+  'Learn sign language through visual lessons',
+  'Practice with quick, easy-to-understand feedback',
+  'Track your learning progress in the dashboard',
 ];
 
 export const Login = () => {
@@ -41,10 +41,10 @@ export const Login = () => {
 
             <div className="max-w-2xl">
               <h1 className="max-w-xl text-5xl font-semibold leading-[1.04] text-white">
-                Bắt đầu hành trình học ngôn ngữ ký hiệu của riêng bạn.
+                Start your own sign language learning journey.
               </h1>
               <p className="mt-5 max-w-lg text-base leading-7 text-slate-200/78">
-                Một không gian học tập gọn gàng, hiện đại và tập trung cho người học luyện kỹ năng mỗi ngày.
+                A focused, modern learning space for practicing every day.
               </p>
             </div>
 
@@ -72,7 +72,7 @@ export const Login = () => {
                 Sign Language
               </p>
               <h1 className="mt-2 text-3xl font-semibold text-slate-950">
-                Học ngôn ngữ ký hiệu dễ hơn mỗi ngày.
+                Sign language learning, one step at a time.
               </h1>
             </div>
 
@@ -82,40 +82,33 @@ export const Login = () => {
                   type="button"
                   onClick={() => setIsSignup(false)}
                   className={`h-11 flex-1 rounded-xl text-sm font-semibold transition ${
-                    !isSignup
-                      ? 'bg-white text-slate-950 shadow-sm'
-                      : 'text-slate-500 hover:text-slate-800'
+                    !isSignup ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-500 hover:text-slate-800'
                   }`}
                 >
-                  Đăng nhập
+                  Log in
                 </button>
                 <button
                   type="button"
                   onClick={() => setIsSignup(true)}
                   className={`h-11 flex-1 rounded-xl text-sm font-semibold transition ${
-                    isSignup
-                      ? 'bg-white text-slate-950 shadow-sm'
-                      : 'text-slate-500 hover:text-slate-800'
+                    isSignup ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-500 hover:text-slate-800'
                   }`}
                 >
-                  Đăng ký
+                  Sign up
                 </button>
               </div>
 
               <div className="mb-6">
                 <p className="text-sm font-medium text-emerald-700">
-                  {isSignup ? 'Tạo tài khoản mới' : 'Chào mừng trở lại'}
+                  {isSignup ? 'Create a new account' : 'Welcome back'}
                 </p>
                 <h2 className="mt-1 text-2xl font-semibold text-slate-950">
-                  {isSignup ? 'Bắt đầu học ngay hôm nay' : 'Tiếp tục bài học của bạn'}
+                  {isSignup ? 'Start learning today' : 'Continue your lessons'}
                 </h2>
               </div>
 
               {isSignup ? (
-                <SignupForm
-                  onSuccess={handleAuthSuccess}
-                  onSwitchToLogin={() => setIsSignup(false)}
-                />
+                <SignupForm onSuccess={handleAuthSuccess} onSwitchToLogin={() => setIsSignup(false)} />
               ) : (
                 <LoginForm onSuccess={handleAuthSuccess} />
               )}
@@ -126,7 +119,7 @@ export const Login = () => {
               onClick={() => setIsSignup((value) => !value)}
               className="mx-auto mt-6 flex items-center gap-2 text-sm font-semibold text-slate-600 transition hover:text-slate-950"
             >
-              {isSignup ? 'Đã có tài khoản? Đăng nhập' : 'Chưa có tài khoản? Đăng ký ngay'}
+              {isSignup ? 'Already have an account? Log in' : 'No account yet? Sign up'}
               <ArrowRight className="size-4" />
             </button>
           </div>

@@ -17,12 +17,12 @@ export interface DashboardNavItem {
 }
 
 export const dashboardNavItems: DashboardNavItem[] = [
-  { label: 'Tong quan', path: '/dashboard', icon: LayoutDashboard },
-  { label: 'Bai hoc', path: '/dashboard/lessons', icon: BookOpenCheck },
+  { label: 'Overview', path: '/dashboard', icon: LayoutDashboard },
+  { label: 'Lessons', path: '/dashboard/lessons', icon: BookOpenCheck },
   { label: 'Flashcard', path: '/dashboard/flashcards', icon: Trophy },
   { label: 'ASL Dictionary', path: '/dashboard/dictionary', icon: Library },
-  { label: 'Dich ngon ngu ky hieu', path: '/dashboard/recognition', icon: Camera },
-  { label: 'Dich van ban', path: '/dashboard/translate', icon: Languages },
+  { label: 'Sign to Text', path: '/dashboard/recognition', icon: Camera },
+  { label: 'Text to Sign', path: '/dashboard/translate', icon: Languages },
   { label: 'Chat AI', path: '/dashboard/chat', icon: Bot },
-  { label: 'Ho so', path: '/dashboard/profile', icon: UserCircle },
+  { label: 'Profile', path: '/dashboard/profile', icon: UserCircle },
 ];

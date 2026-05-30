@@ -18,12 +18,12 @@ export const LoginForm = ({ onSuccess }: LoginFormProps) => {
     setValidationError('');
 
     if (!validators.email(email)) {
-      setValidationError('Email không hợp lệ');
+      setValidationError('Please enter a valid email address.');
       return;
     }
 
     if (!validators.isNotEmpty(password)) {
-      setValidationError('Vui lòng nhập mật khẩu');
+      setValidationError('Please enter your password.');
       return;
     }
 
@@ -59,7 +59,7 @@ export const LoginForm = ({ onSuccess }: LoginFormProps) => {
 
       <div>
         <label htmlFor="password" className="mb-2 block text-sm font-semibold text-slate-700">
-          Mật khẩu
+          Password
         </label>
         <div className="relative">
           <LockKeyhole className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-slate-400" />
@@ -68,7 +68,7 @@ export const LoginForm = ({ onSuccess }: LoginFormProps) => {
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Nhập mật khẩu"
+            placeholder="Enter your password"
             disabled={loading}
             className="h-[52px] w-full rounded-2xl border border-slate-200 bg-slate-50 px-12 text-sm text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10 disabled:cursor-not-allowed disabled:opacity-70"
           />
@@ -88,7 +88,7 @@ export const LoginForm = ({ onSuccess }: LoginFormProps) => {
         className="flex h-[52px] w-full items-center justify-center gap-2 rounded-2xl bg-slate-950 px-5 text-sm font-semibold text-white shadow-lg shadow-slate-900/20 transition hover:-translate-y-0.5 hover:bg-emerald-700 disabled:translate-y-0 disabled:cursor-not-allowed disabled:bg-slate-400"
       >
         {loading && <Loader2 className="size-4 animate-spin" />}
-        {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
+        {loading ? 'Logging in...' : 'Log in'}
       </button>
     </form>
   );

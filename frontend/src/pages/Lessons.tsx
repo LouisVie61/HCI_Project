@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+﻿import { useNavigate } from 'react-router-dom';
 import { Play, RefreshCw, Search } from 'lucide-react';
 import { LoadingState, NoticeState, PanelShell } from '../components/dashboard/DashboardShell';
 import { formatDate } from '../components/dashboard/dashboardUtils';
@@ -105,7 +105,7 @@ export const Lessons = () => {
                   {difficultyLabels[lesson.difficulty]}
                 </p>
                 <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
-                  {progressLoading ? 'Loading progress...' : `${progressLabel} · ${progressPercent}%`}
+                  {progressLoading ? 'Loading progress...' : `${progressLabel} - ${progressPercent}%`}
                 </span>
               </div>
               <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100">

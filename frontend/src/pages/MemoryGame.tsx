@@ -15,12 +15,12 @@ interface MemoryCard {
 }
 
 const sampleCards: Flashcard[] = [
-  { id: 'hello', word: 'Hello', sign_data: { label: '👋' } },
-  { id: 'thanks', word: 'Thank you', sign_data: { label: '🙏' } },
-  { id: 'love', word: 'Love', sign_data: { label: '❤️' } },
-  { id: 'yes', word: 'Yes', sign_data: { label: '👍' } },
-  { id: 'no', word: 'No', sign_data: { label: '✋' } },
-  { id: 'learn', word: 'Learn', sign_data: { label: '📘' } },
+  { id: 'hello', word: 'Hello', sign_data: { label: 'Wave' } },
+  { id: 'thanks', word: 'Thank you', sign_data: { label: 'Thanks' } },
+  { id: 'love', word: 'Love', sign_data: { label: 'Heart' } },
+  { id: 'yes', word: 'Yes', sign_data: { label: 'Fist nod' } },
+  { id: 'no', word: 'No', sign_data: { label: 'No handshape' } },
+  { id: 'learn', word: 'Learn', sign_data: { label: 'Learn sign' } },
 ];
 
 const getSignLabel = (card: Flashcard, index: number) => {
@@ -36,11 +36,10 @@ const getSignLabel = (card: Flashcard, index: number) => {
     return String(card.sign_data.name);
   }
 
-  return ['👋', '🙏', '❤️', '👍', '✋', '📘'][index % 6];
+  return ['Wave', 'Thanks', 'Heart', 'Fist nod', 'No handshape', 'Learn sign'][index % 6];
 };
 
-const shuffleCards = (cards: MemoryCard[]) =>
-  [...cards].sort(() => Math.random() - 0.5);
+const shuffleCards = (cards: MemoryCard[]) => [...cards].sort(() => Math.random() - 0.5);
 
 const buildMemoryCards = (flashcards: Flashcard[]) =>
   shuffleCards(
@@ -49,39 +48,26 @@ const buildMemoryCards = (flashcards: Flashcard[]) =>
         id: `${card.id}-word`,
         pairId: card.id,
         kind: 'word' as const,
-        label: 'Từ vựng',
+        label: 'Word',
         value: card.word,
       },
       {
         id: `${card.id}-sign`,
         pairId: card.id,
         kind: 'sign' as const,
-        label: 'Ký hiệu',
+        label: 'Sign',
         value: getSignLabel(card, index),
       },
-    ])
+    ]),
   );
 
 export const MemoryGame = () => {
   const navigate = useNavigate();
-  const {
-    cards,
-    loading,
-    error,
-    score,
-    userScore,
-    recordAnswer,
-    refetch,
-  } = useFlashcards(6);
+  const { cards, loading, error, score, userScore, recordAnswer, refetch } = useFlashcards(6);
   const submittedMatchCountRef = useRef(0);
   const [savedTotalScore, setSavedTotalScore] = useState(0);
-  const sourceCards = useMemo(
-    () => (cards.length > 0 ? cards.slice(0, 6) : sampleCards),
-    [cards]
-  );
-  const [memoryCards, setMemoryCards] = useState<MemoryCard[]>(() =>
-    buildMemoryCards(sourceCards)
-  );
+  const sourceCards = useMemo(() => (cards.length > 0 ? cards.slice(0, 6) : sampleCards), [cards]);
+  const [memoryCards, setMemoryCards] = useState<MemoryCard[]>(() => buildMemoryCards(sourceCards));
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [matchedIds, setMatchedIds] = useState<string[]>([]);
   const [moves, setMoves] = useState(0);
@@ -111,9 +97,7 @@ export const MemoryGame = () => {
   }, [sourceCards]);
 
   useEffect(() => {
-    if (selectedIds.length !== 2) {
-      return;
-    }
+    if (selectedIds.length !== 2) return;
 
     const [firstId, secondId] = selectedIds;
     const firstCard = memoryCards.find((card) => card.id === firstId);
@@ -122,11 +106,7 @@ export const MemoryGame = () => {
     setMoves((currentMoves) => currentMoves + 1);
 
     if (firstCard && secondCard && firstCard.pairId === secondCard.pairId) {
-      setMatchedIds((currentMatchedIds) => [
-        ...currentMatchedIds,
-        firstId,
-        secondId,
-      ]);
+      setMatchedIds((currentMatchedIds) => [...currentMatchedIds, firstId, secondId]);
       recordAnswer(true);
       setSelectedIds([]);
       return;
@@ -137,14 +117,10 @@ export const MemoryGame = () => {
     }, 700);
 
     return () => window.clearTimeout(timeoutId);
-  }, [memoryCards, selectedIds]);
+  }, [memoryCards, selectedIds, recordAnswer]);
 
   const handleCardClick = (card: MemoryCard) => {
-    if (
-      selectedIds.length === 2 ||
-      selectedIds.includes(card.id) ||
-      matchedIds.includes(card.id)
-    ) {
+    if (selectedIds.length === 2 || selectedIds.includes(card.id) || matchedIds.includes(card.id)) {
       return;
     }
 
@@ -167,93 +143,61 @@ export const MemoryGame = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          <button
-            onClick={() => navigate('/dashboard')}
-            className="text-gray-700 hover:text-gray-950 font-medium"
-          >
-            ← Quay lại
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4">
+          <button onClick={() => navigate('/dashboard')} className="font-medium text-gray-700 hover:text-gray-950">
+            Back
           </button>
           <h1 className="text-2xl font-bold text-gray-900">Memory Game</h1>
         </div>
       </div>
 
-      <main className="max-w-6xl mx-auto px-4 py-8">
-        <section className="bg-white rounded-lg shadow p-6">
+      <main className="mx-auto max-w-6xl px-4 py-8">
+        <section className="rounded-lg bg-white p-6 shadow">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
               <p className="text-sm font-medium text-blue-700">Flashcard</p>
-              <h2 className="text-2xl font-bold text-gray-900">
-                Ghép nối từ vựng với ký hiệu
-              </h2>
+              <h2 className="text-2xl font-bold text-gray-900">Match each word with its sign</h2>
               {error && (
                 <p className="mt-2 text-sm text-amber-700">
-                  Chưa tải được flashcard từ server, đang dùng bộ thẻ mẫu.
+                  Could not load flashcards from the server, so sample cards are being used.
                 </p>
               )}
             </div>
 
             <div className="flex flex-wrap gap-3">
-              <div className="rounded-lg bg-gray-100 px-4 py-2">
-                <span className="text-sm text-gray-600">Lượt</span>
-                <strong className="ml-2 text-gray-900">{moves}</strong>
-              </div>
-              <div className="rounded-lg bg-gray-100 px-4 py-2">
-                <span className="text-sm text-gray-600">Đã đúng</span>
-                <strong className="ml-2 text-gray-900">
-                  {matchedPairs}/{totalPairs}
-                </strong>
-              </div>
-              <div className="rounded-lg bg-gray-100 px-4 py-2">
-                <span className="text-sm text-gray-600">Điểm ván</span>
-                <strong className="ml-2 text-gray-900">{score}</strong>
-              </div>
-              <div className="rounded-lg bg-gray-100 px-4 py-2">
-                <span className="text-sm text-gray-600">Tổng DB</span>
-                <strong className="ml-2 text-gray-900">{savedTotalScore}</strong>
-              </div>
+              <Stat label="Moves" value={moves} />
+              <Stat label="Matched" value={`${matchedPairs}/${totalPairs}`} />
+              <Stat label="Round score" value={score} />
+              <Stat label="Total score" value={savedTotalScore} />
             </div>
           </div>
 
           {loading && cards.length === 0 ? (
             <div className="mt-8 rounded-lg border border-dashed border-gray-300 p-8 text-center text-gray-600">
-              Đang tải flashcard...
+              Loading flashcards...
             </div>
           ) : (
             <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
               {memoryCards.map((card) => {
-                const isOpen =
-                  selectedIds.includes(card.id) || matchedIds.includes(card.id);
+                const isOpen = selectedIds.includes(card.id) || matchedIds.includes(card.id);
 
                 return (
                   <button
                     key={card.id}
                     onClick={() => handleCardClick(card)}
                     className={`aspect-[4/3] rounded-lg border p-4 text-center transition ${
-                      isOpen
-                        ? 'border-blue-300 bg-blue-50 shadow-sm'
-                        : 'border-gray-200 bg-gray-100 hover:bg-gray-200'
+                      isOpen ? 'border-blue-300 bg-blue-50 shadow-sm' : 'border-gray-200 bg-gray-100 hover:bg-gray-200'
                     }`}
                   >
                     {isOpen ? (
                       <span className="flex h-full flex-col items-center justify-center gap-2">
-                        <span className="text-xs font-medium uppercase tracking-wide text-gray-500">
-                          {card.label}
-                        </span>
-                        <span
-                          className={
-                            card.kind === 'sign'
-                              ? 'text-4xl font-bold text-gray-900'
-                              : 'text-lg font-bold text-gray-900'
-                          }
-                        >
+                        <span className="text-xs font-medium uppercase tracking-wide text-gray-500">{card.label}</span>
+                        <span className={card.kind === 'sign' ? 'text-2xl font-bold text-gray-900' : 'text-lg font-bold text-gray-900'}>
                           {card.value}
                         </span>
                       </span>
                     ) : (
-                      <span className="flex h-full items-center justify-center text-3xl">
-                        ?
-                      </span>
+                      <span className="flex h-full items-center justify-center text-3xl">?</span>
                     )}
                   </button>
                 );
@@ -264,21 +208,15 @@ export const MemoryGame = () => {
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-gray-600">
               {isCompleted
-                ? 'Hoàn thành! Bạn đã ghép hết các cặp thẻ.'
-                : 'Chọn 2 thẻ để tìm cặp từ vựng và ký hiệu tương ứng.'}
+                ? 'Complete! You matched all card pairs.'
+                : 'Choose 2 cards to find the matching word and sign pair.'}
             </p>
             <div className="flex gap-3">
-              <button
-                onClick={resetGame}
-                className="rounded-lg bg-gray-900 px-4 py-2 font-medium text-white hover:bg-gray-800"
-              >
-                Chơi lại
+              <button onClick={resetGame} className="rounded-lg bg-gray-900 px-4 py-2 font-medium text-white hover:bg-gray-800">
+                Play again
               </button>
-              <button
-                onClick={refetch}
-                className="rounded-lg border border-gray-300 px-4 py-2 font-medium text-gray-800 hover:bg-gray-100"
-              >
-                Đổi thẻ
+              <button onClick={refetch} className="rounded-lg border border-gray-300 px-4 py-2 font-medium text-gray-800 hover:bg-gray-100">
+                Change cards
               </button>
             </div>
           </div>
@@ -287,3 +225,10 @@ export const MemoryGame = () => {
     </div>
   );
 };
+
+const Stat = ({ label, value }: { label: string; value: string | number }) => (
+  <div className="rounded-lg bg-gray-100 px-4 py-2">
+    <span className="text-sm text-gray-600">{label}</span>
+    <strong className="ml-2 text-gray-900">{value}</strong>
+  </div>
+);

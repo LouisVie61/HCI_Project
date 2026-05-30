@@ -10,10 +10,10 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
-          <div className="text-4xl mb-4">🤟</div>
-          <p className="text-gray-600">Đang tải...</p>
+          <div className="mb-4 text-4xl">SL</div>
+          <p className="text-gray-600">Loading...</p>
         </div>
       </div>
     );

@@ -38,7 +38,7 @@ export const TextTranslate = () => {
     if (loading) {
       return (
         <div className="flex aspect-video items-center justify-center rounded-[28px] border border-slate-200 bg-white">
-          <LoadingState label="Dang tao ngon ngu ky hieu..." />
+          <LoadingState label="Generating sign language output..." />
         </div>
       );
     }
@@ -80,7 +80,7 @@ export const TextTranslate = () => {
 
     return (
       <div className="flex aspect-video items-center justify-center rounded-[28px] border border-slate-200 bg-slate-50">
-        <NoticeState tone="neutral" title="Chua co output" message="unavailable" />
+        <NoticeState tone="neutral" title="No output yet" message="Unavailable" />
       </div>
     );
   };
@@ -89,7 +89,7 @@ export const TextTranslate = () => {
     <PanelShell
       eyebrow="Translator"
       title="Text to Sign Language"
-      description="Nhap text bang ngon ngu bat ky"
+      description="Enter text in any language."
       action={
         <ViewerSelector
           value={viewerMode}
@@ -100,7 +100,7 @@ export const TextTranslate = () => {
       <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
         <form onSubmit={handleSubmit} className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
           <label htmlFor="translate-text" className="text-sm font-semibold text-slate-700">
-            Noi dung can dich
+            Text to translate
           </label>
           <textarea
             id="translate-text"
@@ -137,7 +137,7 @@ export const TextTranslate = () => {
 
           {error && (
             <div className="mt-4">
-              <NoticeState tone="danger" title="Khong dich duoc" message={error} />
+              <NoticeState tone="danger" title="Could not translate" message={error} />
             </div>
           )}
 
@@ -147,7 +147,7 @@ export const TextTranslate = () => {
             className="mt-5 inline-flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-slate-950 px-5 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-slate-400"
           >
             {loading ? <RefreshCw className="size-4 animate-spin" /> : <Languages className="size-4" />}
-            {loading ? 'Dang dich...' : 'Dich sang ngon ngu ky hieu'}
+            {loading ? 'Translating...' : 'Translate to sign language'}
           </button>
         </form>
 
@@ -173,7 +173,7 @@ export const TextTranslate = () => {
             {renderOutput()}
             {mediaError ? (
               <div className="mt-4">
-                <NoticeState tone="danger" title="Khong tai duoc media" message={mediaError} />
+                <NoticeState tone="danger" title="Could not load media" message={mediaError} />
               </div>
             ) : null}
           </div>

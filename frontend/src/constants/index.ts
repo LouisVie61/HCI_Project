@@ -39,20 +39,20 @@ export const CANVAS_CONFIG = {
   WIDTH: 800,
   HEIGHT: 600,
   FPS: 30,
-  GESTURE_DURATION: 2000, // ms
+  GESTURE_DURATION: 2000,
 };
 
 // UI Messages
 export const MESSAGES = {
   SUCCESS: {
-    LOGIN: 'Đăng nhập thành công',
-    SIGNUP: 'Đăng ký thành công',
-    LOGOUT: 'Đăng xuất thành công',
+    LOGIN: 'Logged in successfully',
+    SIGNUP: 'Account created successfully',
+    LOGOUT: 'Logged out successfully',
   },
   ERROR: {
-    NETWORK: 'Lỗi kết nối. Vui lòng thử lại',
-    AUTH_FAILED: 'Email hoặc mật khẩu không đúng',
-    UNAUTHORIZED: 'Bạn cần đăng nhập',
-    SERVER_ERROR: 'Lỗi máy chủ. Vui lòng thử lại',
+    NETWORK: 'Connection error. Please try again.',
+    AUTH_FAILED: 'Email or password is incorrect.',
+    UNAUTHORIZED: 'You need to log in.',
+    SERVER_ERROR: 'Server error. Please try again.',
   },
 };

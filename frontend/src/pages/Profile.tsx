@@ -34,10 +34,10 @@ export const Profile = () => {
     return (
       <PanelShell
         eyebrow="Account"
-        title="Hồ sơ cá nhân"
-        description="Cập nhật thông tin người dùng, email liên hệ, số điện thoại và ảnh đại diện."
+        title="Profile"
+        description="Update your user information, contact email, phone number, and avatar."
       >
-        <NoticeState tone="neutral" title="Đang tải hồ sơ" message="Vui lòng chờ trong giây lát." />
+        <NoticeState tone="neutral" title="Loading profile" message="Please wait a moment." />
       </PanelShell>
     );
   }
@@ -84,10 +84,7 @@ const ProfileForm = ({
   const [validationError, setValidationError] = useState('');
   const [avatarPreview, setAvatarPreview] = useState(getAvatarSrc(user.avatar_url));
 
-  const displayName = useMemo(
-    () => user.full_name?.trim() || 'Chưa có tên',
-    [user.full_name]
-  );
+  const displayName = useMemo(() => user.full_name?.trim() || 'Unnamed user', [user.full_name]);
 
   const handleChange = (field: keyof ProfileFormState, value: string) => {
     setForm((current) => ({ ...current, [field]: value }));
@@ -101,11 +98,11 @@ const ProfileForm = ({
 
     if (!file) return;
     if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
-      setValidationError('Avatar phải là ảnh JPG, PNG hoặc WebP');
+      setValidationError('Avatar must be a JPG, PNG, or WebP image.');
       return;
     }
     if (file.size > 2 * 1024 * 1024) {
-      setValidationError('Avatar phải nhỏ hơn hoặc bằng 2MB');
+      setValidationError('Avatar must be 2MB or smaller.');
       return;
     }
 
@@ -123,17 +120,17 @@ const ProfileForm = ({
     setSaved(false);
 
     if (!validators.isNotEmpty(form.full_name)) {
-      setValidationError('Vui lòng nhập tên hiển thị');
+      setValidationError('Please enter a display name.');
       return;
     }
 
     if (!validators.email(form.email)) {
-      setValidationError('Email không hợp lệ');
+      setValidationError('Please enter a valid email address.');
       return;
     }
 
     if (!validators.phone(form.phone_number)) {
-      setValidationError('Số điện thoại phải gồm 9 đến 15 chữ số và có thể bắt đầu bằng +');
+      setValidationError('Phone number must contain 9 to 15 digits and may start with +.');
       return;
     }
 
@@ -151,8 +148,8 @@ const ProfileForm = ({
   return (
     <PanelShell
       eyebrow="Account"
-      title="Hồ sơ cá nhân"
-      description="Cập nhật thông tin người dùng, email liên hệ, số điện thoại và ảnh đại diện."
+      title="Profile"
+      description="Update your user information, contact email, phone number, and avatar."
     >
       <div className="grid gap-5 lg:grid-cols-[360px_1fr]">
         <section className="rounded-[28px] border border-slate-200 bg-white p-6 text-center shadow-sm">
@@ -168,7 +165,7 @@ const ProfileForm = ({
 
           <label className="mt-6 inline-flex h-11 cursor-pointer items-center gap-2 rounded-2xl bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-emerald-700">
             {loading ? <Loader2 className="size-4 animate-spin" /> : <Camera className="size-4" />}
-            Chọn ảnh
+            Choose image
             <input
               type="file"
               accept="image/png,image/jpeg,image/webp"
@@ -184,23 +181,23 @@ const ProfileForm = ({
             className="mt-3 inline-flex h-11 items-center gap-2 rounded-2xl bg-rose-600 px-4 text-sm font-semibold text-white transition hover:bg-rose-700"
           >
             <LogOut className="size-4" />
-            Đăng xuất
+            Log out
           </button>
         </section>
 
         <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
           <div className="mb-6">
-            <h3 className="text-lg font-semibold text-slate-950">Cập nhật thông tin</h3>
-            <p className="mt-1 text-sm text-slate-500">Email và số điện thoại không được trùng với tài khoản khác.</p>
+            <h3 className="text-lg font-semibold text-slate-950">Update information</h3>
+            <p className="mt-1 text-sm text-slate-500">Email and phone number must be unique across accounts.</p>
           </div>
 
           <form onSubmit={handleSubmit} className="grid gap-5">
             <ProfileInput
               icon={UserCircle}
-              label="Tên hiển thị"
+              label="Display name"
               value={form.full_name}
               onChange={(value) => handleChange('full_name', value)}
-              placeholder="Nguyễn Văn A"
+              placeholder="Alex Nguyen"
             />
             <ProfileInput
               icon={Mail}
@@ -212,16 +209,16 @@ const ProfileForm = ({
             />
             <ProfileInput
               icon={Phone}
-              label="Số điện thoại"
+              label="Phone number"
               value={form.phone_number}
               onChange={(value) => handleChange('phone_number', value)}
               placeholder="0901234567"
             />
 
             {(validationError || error) && (
-              <NoticeState tone="danger" title="Không thể cập nhật" message={validationError || error || ''} />
+              <NoticeState tone="danger" title="Could not update profile" message={validationError || error || ''} />
             )}
-            {saved && <NoticeState tone="neutral" title="Đã lưu thông tin" message="Hồ sơ của bạn đã được cập nhật." />}
+            {saved && <NoticeState tone="neutral" title="Profile saved" message="Your profile has been updated." />}
 
             <button
               type="submit"
@@ -229,17 +226,17 @@ const ProfileForm = ({
               className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-slate-950 px-5 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-slate-400"
             >
               {loading ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
-              {loading ? 'Đang lưu...' : 'Lưu thay đổi'}
+              {loading ? 'Saving...' : 'Save changes'}
             </button>
           </form>
         </section>
 
         <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm lg:col-span-2">
-          <h3 className="text-lg font-semibold text-slate-950">Thông tin tài khoản</h3>
+          <h3 className="text-lg font-semibold text-slate-950">Account information</h3>
           <div className="mt-5 grid gap-3 md:grid-cols-3">
-            <InfoRow icon={Mail} label="Email" value={user.email || 'Chưa có'} />
-            <InfoRow icon={UserCircle} label="Vai trò" value={user.role || 'user'} />
-            <InfoRow icon={CheckCircle2} label="Ngày tạo" value={formatUserDate(user.created_at)} />
+            <InfoRow icon={Mail} label="Email" value={user.email || 'Not set'} />
+            <InfoRow icon={UserCircle} label="Role" value={user.role || 'user'} />
+            <InfoRow icon={CheckCircle2} label="Created" value={formatUserDate(user.created_at)} />
           </div>
         </section>
       </div>

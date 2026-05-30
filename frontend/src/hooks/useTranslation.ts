@@ -133,7 +133,7 @@ export const useSignToText = () => {
   const [predictionCount, setPredictionCount] = useState(0);
   const [recognitionMode, setRecognitionMode] = useState<RecognitionMode>('rule-fallback');
   const [modelWarning, setModelWarning] = useState<string | null>(null);
-  const [cameraHint, setCameraHint] = useState('Mo camera va dua ban tay vao khung hinh.');
+  const [cameraHint, setCameraHint] = useState('Turn on the camera and place your hand in frame.');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isDetecting, setIsDetecting] = useState(false);
@@ -174,10 +174,10 @@ export const useSignToText = () => {
       const finalPrediction = motionPrediction ?? prediction;
 
       if (!hand) {
-        setCameraHint('Chua thay ban tay. Hay dua tay vao giua khung hinh.');
+        setCameraHint('No hand detected. Move your hand to the center of the frame.');
       } else {
         const handSize = Math.abs(hand.landmarks[0].y - hand.landmarks[9].y);
-        setCameraHint(handSize < 0.08 ? 'Tay hoi xa camera. Hay dua tay lai gan hon.' : 'Giu ky hieu on dinh trong khoang 1 giay.');
+        setCameraHint(handSize < 0.08 ? 'Your hand is a bit far from the camera. Move it closer.' : 'Hold the sign steady for about 1 second.');
       }
 
       setCurrentGesture(finalPrediction);
@@ -229,7 +229,7 @@ export const useSignToText = () => {
       lastAcceptedAtRef.current = 0;
       setDetectedText('');
       setCurrentGesture(null);
-      setCameraHint('Dang nhan dien. Hay dua ban tay vao khung hinh.');
+      setCameraHint('Recognizing. Place your hand in frame.');
       setTranscript([]);
       setSessionSummary([]);
       setPredictionCount(0);
@@ -265,7 +265,7 @@ export const useSignToText = () => {
     setPredictionCount(0);
     detectedRecordsRef.current = [];
     setDetectedText('');
-    setCameraHint('Mo camera va dua ban tay vao khung hinh.');
+    setCameraHint('Turn on the camera and place your hand in frame.');
     lastAcceptedRef.current = '';
     lastAcceptedAtRef.current = 0;
     stabilizerRef.current.reset();

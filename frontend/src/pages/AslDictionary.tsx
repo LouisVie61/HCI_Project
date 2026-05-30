@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+﻿import { useEffect, useMemo, useRef, useState } from 'react';
 import { BookOpen, Loader2, Search } from 'lucide-react';
 import { NoticeState, PanelShell } from '../components/dashboard/DashboardShell';
 import { SkeletonPoseViewer } from '../components/translator/SkeletonPoseViewer';
@@ -15,8 +15,8 @@ const isPlaceholderGestureValue = (value?: string) => {
     normalized === 'unverified' ||
     normalized === 'none' ||
     normalized.includes('unverified disabled') ||
-    normalized.includes('chưa có mô tả asl đủ tin cậy') ||
-    normalized.includes('không dùng thông tin handshape/location')
+    (normalized.includes('ch') && normalized.includes('asl') && normalized.includes('tin')) ||
+    normalized.includes('handshape/location')
   );
 };
 
@@ -195,7 +195,7 @@ export const AslDictionary = () => {
             </div>
           ) : error ? (
             <div className="mt-5">
-              <NoticeState tone="danger" title="Khong tai duoc tu dien" message={error} />
+              <NoticeState tone="danger" title="Could not load dictionary" message={error} />
             </div>
           ) : (
             <>
