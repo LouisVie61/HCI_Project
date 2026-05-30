@@ -638,51 +638,17 @@ export const Flashcards = () => {
           <section className="lg:col-span-2">
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
               {topicOptions.map((topic) => {
-                const levelCounts = difficultyOptions.map((option) => {
-                  const totalCards = curatedCardsByDifficulty[option.value].filter((card) => getTopic(card) === topic.id).length;
-                  return {
-                    ...option,
-                    totalCards,
-                    progress: getProgressPercent(topicProgress, topic.id, option.value, totalCards),
-                  };
-                });
-                const totalTopicCards = levelCounts.reduce((sum, level) => sum + level.totalCards, 0);
-                const totalProgress = totalTopicCards
-                  ? Math.round(
-                      levelCounts.reduce((sum, level) => sum + Math.round((level.progress / 100) * level.totalCards), 0) / totalTopicCards * 100
-                    )
-                  : 0;
-
                 return (
                   <button
                     key={topic.id}
                     type="button"
                     onClick={() => setSelectedTopic(topic.id)}
-                    className="rounded-[28px] border border-slate-200 bg-white p-5 text-left shadow-sm transition hover:border-emerald-300 hover:shadow-md"
+                    className="rounded-[28px] border border-slate-200 bg-white p-6 text-left shadow-sm transition hover:border-emerald-300 hover:shadow-md"
                   >
-                    <span className="mb-4 flex size-11 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
-                      <Layers className="size-5" />
+                    <span className="mb-5 flex size-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
+                      <Layers className="size-6" />
                     </span>
-                    <span className="block text-lg font-semibold text-slate-950">{topic.label}</span>
-                    <span className="mt-2 block min-h-12 text-sm leading-6 text-slate-500">{topic.description}</span>
-                    <span className="mt-4 flex items-center justify-between text-xs font-semibold text-slate-500">
-                      <span>{totalTopicCards} cards</span>
-                      <span>{totalProgress}% complete</span>
-                    </span>
-                    <span className="mt-2 block h-2 overflow-hidden rounded-full bg-slate-100">
-                      <span className="block h-full rounded-full bg-emerald-500" style={{ width: `${totalProgress}%` }} />
-                    </span>
-                    <span className="mt-4 grid gap-2">
-                      {levelCounts.map((level) => (
-                        <span key={level.value} className="grid grid-cols-[72px_1fr_38px] items-center gap-2 text-xs font-semibold">
-                          <span className="text-slate-500">{level.label}</span>
-                          <span className="h-1.5 overflow-hidden rounded-full bg-slate-100">
-                            <span className="block h-full rounded-full bg-emerald-500" style={{ width: `${level.progress}%` }} />
-                          </span>
-                          <span className="text-slate-500">{level.progress}%</span>
-                        </span>
-                      ))}
-                    </span>
+                    <span className="block text-2xl font-bold text-slate-950">{topic.label}</span>
                   </button>
                 );
               })}
