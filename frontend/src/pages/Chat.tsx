@@ -8,8 +8,8 @@ export const Chat = () => {
   const [draft, setDraft] = useState('');
 
   const starterPrompts = useMemo(
-    () => ['Giải thích ký hiệu xin chào', 'Làm sao luyện bảng chữ cái?', 'Gợi ý bài tập 10 phút'],
-    []
+    () => ['Explain the sign for hello', 'How should I practice the alphabet?', 'Suggest a 10-minute practice session'],
+    [],
   );
 
   const handleSubmit = (event: FormEvent) => {
@@ -22,8 +22,8 @@ export const Chat = () => {
   return (
     <PanelShell
       eyebrow="Assistant"
-      title="Chat AI hỗ trợ học"
-      description="Đặt câu hỏi về bài học, ký hiệu hoặc cách luyện tập."
+      title="AI Learning Assistant"
+      description="Ask questions about lessons, signs, or practice routines."
       action={
         <button
           type="button"
@@ -31,7 +31,7 @@ export const Chat = () => {
           className="inline-flex h-11 items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
         >
           <RefreshCw className="size-4" />
-          Xóa chat
+          Clear chat
         </button>
       }
     >
@@ -42,7 +42,7 @@ export const Chat = () => {
               <div className="mb-5 flex size-16 items-center justify-center rounded-3xl bg-emerald-50 text-emerald-700">
                 <Bot className="size-8" />
               </div>
-              <h3 className="text-xl font-semibold text-slate-950">Bạn muốn học gì hôm nay?</h3>
+              <h3 className="text-xl font-semibold text-slate-950">What would you like to learn today?</h3>
               <div className="mt-5 flex flex-wrap justify-center gap-2">
                 {starterPrompts.map((prompt) => (
                   <button
@@ -72,8 +72,8 @@ export const Chat = () => {
               </div>
             );
           })}
-          {loading && <LoadingState label="AI đang trả lời..." />}
-          {error && <NoticeState tone="danger" title="Không gửi được tin nhắn" message={error} />}
+          {loading && <LoadingState label="AI is replying..." />}
+          {error && <NoticeState tone="danger" title="Could not send message" message={error} />}
         </div>
 
         <form onSubmit={handleSubmit} className="border-t border-slate-200 p-4">
@@ -81,7 +81,7 @@ export const Chat = () => {
             <input
               value={draft}
               onChange={(event) => setDraft(event.target.value)}
-              placeholder="Nhập câu hỏi của bạn..."
+              placeholder="Enter your question..."
               className="h-12 min-w-0 flex-1 rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10"
             />
             <button
@@ -90,7 +90,7 @@ export const Chat = () => {
               className="inline-flex h-12 items-center gap-2 rounded-2xl bg-slate-950 px-5 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-slate-400"
             >
               <Send className="size-4" />
-              <span className="hidden sm:inline">Gửi</span>
+              <span className="hidden sm:inline">Send</span>
             </button>
           </div>
         </form>

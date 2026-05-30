@@ -4,12 +4,12 @@ import { NoticeState, PanelShell } from '../components/dashboard/DashboardShell'
 import { useSignToText } from '../hooks';
 
 const supportedGestures = [
-  { label: 'Hello', text: 'hello', guide: 'giu thang ban tay va dua len tran' },
-  { label: 'Bye', text: 'bye', guide: 'Mo long ban tay huong ve camera' },
-  { label: 'Yes', text: 'yes', guide: 'gio nam dam vao camera' },
-  { label: 'No', text: 'no', guide: 'chum 3 ngon cai, tro, giua lai va gap 2 ngon con lai vao' },
-  { label: 'OK', text: 'OK', guide: 'like' },
-  { label: 'I love you', text: 'I love you', guide: 'spiderman ban to' },
+  { label: 'Hello', text: 'hello', guide: 'Raise an open hand near your forehead.' },
+  { label: 'Bye', text: 'bye', guide: 'Open your palm toward the camera.' },
+  { label: 'Yes', text: 'yes', guide: 'Hold a fist toward the camera.' },
+  { label: 'No', text: 'no', guide: 'Bring the thumb, index, and middle fingers together.' },
+  { label: 'OK', text: 'OK', guide: 'Make an OK handshape.' },
+  { label: 'I love you', text: 'I love you', guide: 'Extend the thumb, index finger, and pinky.' },
 ];
 
 export const SignRecognition = () => {
@@ -39,8 +39,8 @@ export const SignRecognition = () => {
   return (
     <PanelShell
       eyebrow="Camera"
-      title="Nhan dien ky hieu"
-      description="Mo camera, thuc hien ky hieu truoc webcam va xem ket qua duoc chuyen thanh text."
+      title="Sign Recognition"
+      description="Open the camera, perform a sign, and see the recognized text."
       action={
         <button
           type="button"
@@ -51,7 +51,7 @@ export const SignRecognition = () => {
           }`}
         >
           {loading ? <Loader2 className="size-4 animate-spin" /> : isDetecting ? <Square className="size-4" /> : <Camera className="size-4" />}
-          {loading ? 'Dang khoi tao' : isDetecting ? 'Tat camera' : 'Mo camera'}
+          {loading ? 'Starting...' : isDetecting ? 'Turn camera off' : 'Turn camera on'}
         </button>
       }
     >
@@ -72,9 +72,9 @@ export const SignRecognition = () => {
               <div className="mb-5 flex size-16 items-center justify-center rounded-2xl bg-white/10">
                 <Camera className="size-8" />
               </div>
-              <h3 className="text-xl font-semibold">Camera dang tat</h3>
+              <h3 className="text-xl font-semibold">Camera is off</h3>
               <p className="mt-2 max-w-sm text-sm leading-6 text-slate-300">
-                Nhan mo camera, dua ban tay vao khung hinh, giu cu chi on dinh de them ket qua vao transcript.
+                Turn on the camera, place your hand in frame, and hold a stable gesture to add it to the transcript.
               </p>
             </div>
           )}
@@ -86,11 +86,11 @@ export const SignRecognition = () => {
 
         <aside className="space-y-4">
           <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p className="text-sm font-semibold text-slate-500">Ket qua</p>
-            <p className="mt-3 min-h-9 text-3xl font-semibold text-slate-950">{detectedText || 'Chua co'}</p>
+            <p className="text-sm font-semibold text-slate-500">Result</p>
+            <p className="mt-3 min-h-9 text-3xl font-semibold text-slate-950">{detectedText || 'No result yet'}</p>
             <div className="mt-4">
               <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-slate-500">
-                <span>{currentGesture?.label && currentGesture.label !== 'UNKNOWN' ? currentGesture.label : 'Dang cho cu chi'}</span>
+                <span>{currentGesture?.label && currentGesture.label !== 'UNKNOWN' ? currentGesture.label : 'Waiting for a gesture'}</span>
                 <span>{confidence}%</span>
               </div>
               <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100">
@@ -102,8 +102,8 @@ export const SignRecognition = () => {
           {modelWarning && (
             <NoticeState
               tone="neutral"
-              title="Che do demo"
-              message="He thong dang su dung bo nhan dien co ban. Mot so ky hieu ngoai danh sach ho tro co the chua duoc nhan dien."
+              title="Demo mode"
+              message="The system is using a basic recognizer. Some unsupported signs may not be recognized yet."
             />
           )}
 
@@ -115,7 +115,7 @@ export const SignRecognition = () => {
                   type="button"
                   onClick={undoLastTranscript}
                   disabled={!transcript.length}
-                  title="Xoa tu cuoi"
+                  title="Remove last word"
                   className="inline-flex size-9 items-center justify-center rounded-xl border border-slate-200 text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   <RotateCcw className="size-4" />
@@ -133,7 +133,7 @@ export const SignRecognition = () => {
                   type="button"
                   onClick={speakTranscript}
                   disabled={!transcript.length}
-                  title="Doc transcript"
+                  title="Read transcript"
                   className="inline-flex size-9 items-center justify-center rounded-xl border border-slate-200 text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   <Volume2 className="size-4" />
@@ -142,7 +142,7 @@ export const SignRecognition = () => {
                   type="button"
                   onClick={clearTranscript}
                   disabled={!transcript.length}
-                  title="Xoa transcript"
+                  title="Clear transcript"
                   className="inline-flex size-9 items-center justify-center rounded-xl border border-slate-200 text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   <Eraser className="size-4" />
@@ -150,12 +150,12 @@ export const SignRecognition = () => {
               </div>
             </div>
             <div className="mt-4 min-h-24 rounded-2xl bg-slate-50 p-4 text-sm leading-6 text-slate-700">
-              {transcriptText || 'Transcript se xuat hien tai day.'}
+              {transcriptText || 'Transcript will appear here.'}
             </div>
           </section>
 
           <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p className="text-sm font-semibold text-slate-500">Gesture ho tro</p>
+            <p className="text-sm font-semibold text-slate-500">Supported gestures</p>
             <div className="mt-3 rounded-2xl bg-emerald-50 p-4">
               <p className="text-base font-semibold text-slate-950">{selectedGesture.label}</p>
               <p className="mt-1 text-sm leading-6 text-slate-600">{selectedGesture.guide}</p>
@@ -179,7 +179,7 @@ export const SignRecognition = () => {
             </div>
           </section>
 
-          {error && <NoticeState tone="danger" title="Loi camera/model" message={error} />}
+          {error && <NoticeState tone="danger" title="Camera or model error" message={error} />}
         </aside>
       </div>
     </PanelShell>
