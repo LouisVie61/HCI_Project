@@ -82,7 +82,7 @@ async def restart_lesson(
     current_user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Học lại từ đầu — reset về 0%"""
+    """Restart a lesson and reset progress to 0%."""
     try:
         service = LessonService(db)
         return service.restart_lesson(current_user.id, lesson_id)
@@ -96,7 +96,7 @@ async def create_lesson(
     current_user=Depends(get_current_user),   # bắt buộc đăng nhập
     db: Session = Depends(get_db),
 ):
-    """Tạo bài học mới — chỉ admin"""
+    """Create a new lesson. Admin only."""
     if current_user.role != "admin": # kiểm tra role
         raise HTTPException(status_code=403, detail="Admin only")
     service = LessonService(db)
