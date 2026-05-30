@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
-import { BookOpen, CheckCircle2, ChevronRight, ExternalLink, Layers, RefreshCw, Trophy, XCircle } from 'lucide-react';
+import { ChevronRight, Clock, ExternalLink, Layers, RefreshCw, Trophy, XCircle, CheckCircle2 } from 'lucide-react';
 import { flashcardApi } from '../api/endpoints';
-import { LoadingState, NoticeState, PanelShell, StatTile } from '../components/dashboard/DashboardShell';
-import { useFlashcards } from '../hooks';
+import { LoadingState, NoticeState, PanelShell } from '../components/dashboard/DashboardShell';
+import { useAuth, useFlashcards } from '../hooks';
 import type { Flashcard } from '../types';
 
 const shuffle = <T,>(items: T[]) => [...items].sort(() => Math.random() - 0.5);
@@ -20,7 +20,22 @@ type TopicProgress = Record<
   }
 >;
 
+type LeaderboardEntry = {
+  id: string;
+  userId: string;
+  userName: string;
+  topicId: TopicId;
+  topicLabel: string;
+  difficulty: Difficulty;
+  score: number;
+  correct: number;
+  total: number;
+  createdAt: string;
+};
+
 const FLASHCARD_PROGRESS_KEY = 'asl-flashcard-topic-progress-v1';
+const FLASHCARD_LEADERBOARD_KEY = 'asl-flashcard-timer-leaderboard-v1';
+const CARD_TIME_LIMIT_SECONDS = 15;
 
 const difficultyOptions: Array<{ value: Difficulty; label: string; description: string }> = [
   { value: 'easy', label: 'Easy', description: 'Core signs and short answer sets' },
@@ -285,7 +300,22 @@ const writeProgress = (progress: TopicProgress) => {
   window.localStorage.setItem(FLASHCARD_PROGRESS_KEY, JSON.stringify(progress));
 };
 
+const readLeaderboard = (): LeaderboardEntry[] => {
+  try {
+    const rawLeaderboard = window.localStorage.getItem(FLASHCARD_LEADERBOARD_KEY);
+    return rawLeaderboard ? (JSON.parse(rawLeaderboard) as LeaderboardEntry[]) : [];
+  } catch {
+    return [];
+  }
+};
+
+const writeLeaderboard = (entries: LeaderboardEntry[]) => {
+  window.localStorage.setItem(FLASHCARD_LEADERBOARD_KEY, JSON.stringify(entries));
+};
+
 const unique = (items: string[]) => Array.from(new Set(items));
+
+const getTimerPoints = (secondsLeft: number) => 100 + secondsLeft * 10;
 
 const getProgressPercent = (progress: TopicProgress, topicId: TopicId, difficulty: Difficulty, totalCards: number) => {
   if (!totalCards) {
@@ -338,11 +368,11 @@ const SignAslVideo = ({ vidref }: { vidref: string }) => {
   }, [vidref]);
 
   if (isLoading) {
-    return <div className="flex aspect-video w-full items-center justify-center text-sm font-semibold text-slate-300">Loading ASL video...</div>;
+    return <div className="flex aspect-video max-h-[42vh] w-full items-center justify-center text-sm font-semibold text-slate-300">Loading ASL video...</div>;
   }
 
   if (!videoSrc) {
-    return <div className="flex aspect-video w-full items-center justify-center text-sm font-semibold text-slate-300">Could not load this ASL video.</div>;
+    return <div className="flex aspect-video max-h-[42vh] w-full items-center justify-center text-sm font-semibold text-slate-300">Could not load this ASL video.</div>;
   }
 
   return (
@@ -351,23 +381,30 @@ const SignAslVideo = ({ vidref }: { vidref: string }) => {
       src={videoSrc}
       poster={posterSrc}
       controls
-      muted
-      loop
-      playsInline
-      className="aspect-video w-full bg-slate-950 object-contain"
-    />
+    muted
+    loop
+    playsInline
+    className="aspect-video max-h-[42vh] w-full bg-slate-950 object-contain"
+  />
   );
 };
 
 export const Flashcards = () => {
-  const { cards, userScore, loading, error, refetch } = useFlashcards(10);
+  const { user } = useAuth();
+  const { cards, loading, error, refetch } = useFlashcards(10);
   const [selectedTopic, setSelectedTopic] = useState<TopicId | null>(null);
   const [selectedDifficulty, setSelectedDifficulty] = useState<Difficulty>('medium');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [score, setScore] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState('');
   const [hasAnswered, setHasAnswered] = useState(false);
+  const [isTimerEnabled, setIsTimerEnabled] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(CARD_TIME_LIMIT_SECONDS);
+  const [timedOut, setTimedOut] = useState(false);
   const [topicProgress, setTopicProgress] = useState<TopicProgress>(() => readProgress());
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>(() => readLeaderboard());
+  const [lastAnswerPoints, setLastAnswerPoints] = useState(0);
+  const [correctAnswers, setCorrectAnswers] = useState(0);
 
   const curatedCardsByLevel = useMemo(
     () =>
@@ -395,13 +432,14 @@ export const Flashcards = () => {
 
   const currentCard = practiceCards[currentIndex];
   const progress = practiceCards.length ? Math.round(((currentIndex + 1) / practiceCards.length) * 100) : 0;
-  const selectedTopicProgress = selectedTopic ? getProgressPercent(topicProgress, selectedTopic, selectedDifficulty, practiceCards.length) : 0;
+  const progressLabel = practiceCards.length ? `${currentIndex + 1}/${practiceCards.length}` : '0/0';
   const selectedTopicLabel = topicOptions.find((topic) => topic.id === selectedTopic)?.label || 'Choose Topic';
   const mediaUrl = getMediaUrl(currentCard);
   const currentSignData = getSignData(currentCard);
   const signAslVidref = String(currentSignData.signasl_ref || currentSignData.vidref || '');
   const sourceUrl = String(currentSignData.source_url || (!isVideoFile(mediaUrl) ? mediaUrl : ''));
   const isCorrect = Boolean(currentCard && selectedAnswer === currentCard.word);
+  const sortedLeaderboard = useMemo(() => [...leaderboard].sort((a, b) => b.score - a.score).slice(0, 10), [leaderboard]);
 
   const answerOptions = useMemo(() => {
     if (!currentCard) {
@@ -418,11 +456,54 @@ export const Flashcards = () => {
   useEffect(() => {
     setSelectedAnswer('');
     setHasAnswered(false);
+    setTimedOut(false);
+    setLastAnswerPoints(0);
+    setTimeLeft(CARD_TIME_LIMIT_SECONDS);
   }, [currentCard?.id]);
+
+  useEffect(() => {
+    if (!isTimerEnabled) {
+      setTimeLeft(CARD_TIME_LIMIT_SECONDS);
+      return;
+    }
+
+    if (!currentCard || hasAnswered || !selectedTopic) {
+      return;
+    }
+
+    if (timeLeft <= 0) {
+      setSelectedAnswer('__timeout__');
+      setHasAnswered(true);
+      setTimedOut(true);
+      setTopicProgress((prev) => {
+        const progressKey = getProgressKey(selectedTopic, selectedDifficulty);
+        const entry = prev[progressKey] || { seenCardIds: [], correctCardIds: [], bestScore: 0, attempts: 0 };
+        const nextProgress = {
+          ...prev,
+          [progressKey]: {
+            ...entry,
+            seenCardIds: unique([...entry.seenCardIds, currentCard.id]),
+          },
+        };
+
+        writeProgress(nextProgress);
+        return nextProgress;
+      });
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setTimeLeft((prev) => Math.max(0, prev - 1));
+    }, 1000);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [currentCard, hasAnswered, isTimerEnabled, selectedDifficulty, selectedTopic, timeLeft]);
 
   useEffect(() => {
     setCurrentIndex(0);
     setScore(0);
+    setCorrectAnswers(0);
+    setLastAnswerPoints(0);
   }, [selectedDifficulty, selectedTopic]);
 
   useEffect(() => {
@@ -430,6 +511,22 @@ export const Flashcards = () => {
       setCurrentIndex(0);
     }
   }, [currentIndex, practiceCards.length]);
+
+  const resetRound = () => {
+    setCurrentIndex(0);
+    setScore(0);
+    setCorrectAnswers(0);
+    setSelectedAnswer('');
+    setHasAnswered(false);
+    setTimedOut(false);
+    setLastAnswerPoints(0);
+    setTimeLeft(CARD_TIME_LIMIT_SECONDS);
+  };
+
+  const handleTimerToggle = () => {
+    setIsTimerEnabled((prev) => !prev);
+    resetRound();
+  };
 
   const handleAnswer = (answer: string) => {
     if (!currentCard || hasAnswered || !selectedTopic) {
@@ -457,7 +554,10 @@ export const Flashcards = () => {
     });
 
     if (answeredCorrectly) {
-      setScore((prev) => prev + 1);
+      const earnedPoints = isTimerEnabled ? getTimerPoints(timeLeft) : 1;
+      setLastAnswerPoints(earnedPoints);
+      setScore((prev) => prev + earnedPoints);
+      setCorrectAnswers((prev) => prev + 1);
     }
   };
 
@@ -468,6 +568,29 @@ export const Flashcards = () => {
 
     if (currentIndex === practiceCards.length - 1) {
       await flashcardApi.recordScore(score, practiceCards.length);
+      if (isTimerEnabled) {
+        const userId = user?.id || 'guest';
+        const userName = user?.full_name?.trim() || user?.email || 'Guest';
+        const topicLabel = topicOptions.find((topic) => topic.id === selectedTopic)?.label || selectedTopic;
+        const entry: LeaderboardEntry = {
+          id: `${Date.now()}-${userId}-${selectedTopic}-${selectedDifficulty}`,
+          userId,
+          userName,
+          topicId: selectedTopic,
+          topicLabel,
+          difficulty: selectedDifficulty,
+          score,
+          correct: correctAnswers,
+          total: practiceCards.length,
+          createdAt: new Date().toISOString(),
+        };
+
+        setLeaderboard((prev) => {
+          const nextLeaderboard = [...prev, entry].sort((a, b) => b.score - a.score).slice(0, 20);
+          writeLeaderboard(nextLeaderboard);
+          return nextLeaderboard;
+        });
+      }
       setTopicProgress((prev) => {
         const progressKey = getProgressKey(selectedTopic, selectedDifficulty);
         const entry = prev[progressKey] || { seenCardIds: [], correctCardIds: [], bestScore: 0, attempts: 0 };
@@ -484,6 +607,8 @@ export const Flashcards = () => {
         return nextProgress;
       });
       setScore(0);
+      setCorrectAnswers(0);
+      setLastAnswerPoints(0);
       setCurrentIndex(0);
       refetch();
       return;
@@ -562,25 +687,101 @@ export const Flashcards = () => {
                 );
               })}
             </div>
+            <div className="mt-5 rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-emerald-700">Timer Leaderboard</p>
+                  <h3 className="mt-1 text-xl font-semibold text-slate-950">Highest timed round scores</h3>
+                </div>
+                <div className="flex size-11 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
+                  <Trophy className="size-5" />
+                </div>
+              </div>
+              {sortedLeaderboard.length ? (
+                <div className="overflow-hidden rounded-2xl border border-slate-100 bg-slate-50">
+                  <div className="hidden grid-cols-[64px_1.2fr_1fr_96px_96px] gap-3 px-4 py-3 text-xs font-semibold uppercase tracking-[0.08em] text-slate-500 md:grid">
+                    <span>Rank</span>
+                    <span>Name</span>
+                    <span>Topic</span>
+                    <span>Level</span>
+                    <span className="text-right">Score</span>
+                  </div>
+                  <div className="grid gap-2 p-3">
+                    {sortedLeaderboard.map((entry, index) => (
+                      <div
+                        key={entry.id}
+                        className="grid gap-2 rounded-xl bg-white px-4 py-3 text-sm shadow-sm md:grid-cols-[64px_1.2fr_1fr_96px_96px] md:items-center md:gap-3"
+                      >
+                        <span className="font-bold text-emerald-700">#{index + 1}</span>
+                        <span className="min-w-0">
+                          <span className="block truncate font-semibold text-slate-950">{entry.userName}</span>
+                          <span className="block text-xs text-slate-500 md:hidden">
+                            {entry.topicLabel} / {entry.difficulty} / {entry.correct}/{entry.total}
+                          </span>
+                        </span>
+                        <span className="hidden truncate text-slate-600 md:block">{entry.topicLabel}</span>
+                        <span className="hidden capitalize text-slate-600 md:block">{entry.difficulty}</span>
+                        <span className="font-bold text-slate-950 md:text-right">{entry.score}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <p className="rounded-2xl bg-slate-50 px-4 py-3 text-sm leading-6 text-slate-500">
+                  Turn on timer inside any topic and finish a round to enter the leaderboard.
+                </p>
+              )}
+            </div>
           </section>
         ) : (
           <>
-            <section className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
-              <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
+            <section className="rounded-[28px] border border-slate-200 bg-white p-4 shadow-sm lg:col-span-2">
+              <div className="mb-3 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                <div className="min-w-0">
                   <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700">Topic</p>
-                  <h3 className="mt-1 text-xl font-semibold text-slate-950">{selectedTopicLabel}</h3>
+                  <h3 className="mt-0.5 truncate text-lg font-semibold text-slate-950">{selectedTopicLabel}</h3>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setSelectedTopic(null)}
-                  className="inline-flex h-10 items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-                >
-                  Change topic
-                </button>
+                <div className="flex flex-wrap items-center gap-2">
+                  {currentCard && (
+                    <>
+                      <span className="rounded-2xl bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-600">
+                        Card {currentIndex + 1}/{practiceCards.length}
+                      </span>
+                      {isTimerEnabled && (
+                        <span
+                          className={`inline-flex items-center gap-1 rounded-2xl px-3 py-2 text-xs font-bold ${
+                            timeLeft <= 5 ? 'bg-rose-50 text-rose-700' : 'bg-emerald-50 text-emerald-700'
+                          }`}
+                        >
+                          <Clock className="size-3.5" />
+                          {timeLeft}s
+                        </span>
+                      )}
+                    </>
+                  )}
+                  <button
+                    type="button"
+                    onClick={handleTimerToggle}
+                    className={`inline-flex h-9 items-center gap-2 rounded-2xl border px-3 text-sm font-semibold transition ${
+                      isTimerEnabled
+                        ? 'border-emerald-300 bg-emerald-50 text-emerald-800'
+                        : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+                    }`}
+                  >
+                    <Clock className="size-4" />
+                    Timer {isTimerEnabled ? 'On' : 'Off'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedTopic(null)}
+                    className="inline-flex h-9 items-center justify-center rounded-2xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                  >
+                    Change topic
+                  </button>
+                </div>
               </div>
 
-              <div className="mb-5 grid gap-3 sm:grid-cols-3">
+              <div className="mb-3 grid gap-2 sm:grid-cols-3">
                 {difficultyOptions.map((option) => {
                   const isActive = selectedDifficulty === option.value;
                   const levelTotalCards = curatedCardsByLevel[option.value].length;
@@ -591,7 +792,7 @@ export const Flashcards = () => {
                       key={option.value}
                       type="button"
                       onClick={() => setSelectedDifficulty(option.value)}
-                      className={`rounded-2xl border px-4 py-3 text-left transition ${
+                      className={`rounded-2xl border px-3 py-2 text-left transition ${
                         isActive
                           ? 'border-emerald-400 bg-emerald-50 text-emerald-900 ring-2 ring-emerald-100'
                           : 'border-slate-200 bg-white text-slate-700 hover:border-emerald-200 hover:bg-emerald-50'
@@ -601,8 +802,7 @@ export const Flashcards = () => {
                         <span className="text-sm font-bold">{option.label}</span>
                         <span className="text-xs font-semibold text-emerald-700">{levelProgress}%</span>
                       </span>
-                      <span className="mt-1 block text-xs font-medium leading-5 text-slate-500">{levelTotalCards} cards</span>
-                      <span className="mt-3 block h-1.5 overflow-hidden rounded-full bg-slate-100">
+                      <span className="mt-1 block h-1.5 overflow-hidden rounded-full bg-slate-100">
                         <span className="block h-full rounded-full bg-emerald-500" style={{ width: `${levelProgress}%` }} />
                       </span>
                     </button>
@@ -618,36 +818,71 @@ export const Flashcards = () => {
 
               {currentCard && (
                 <>
-                  <div className="mb-5 flex items-center justify-between gap-3">
-                    <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
-                      Card {currentIndex + 1}/{practiceCards.length}
-                    </span>
-                    <span className="text-sm font-semibold text-emerald-700">{progress}%</span>
-                  </div>
-
-                  <div className="mb-6 h-2 overflow-hidden rounded-full bg-slate-100">
+                  <div className="mb-3 h-1.5 overflow-hidden rounded-full bg-slate-100">
                     <div className="h-full rounded-full bg-emerald-500 transition-all" style={{ width: `${progress}%` }} />
                   </div>
 
-                  <div className="overflow-hidden rounded-3xl border border-slate-200 bg-slate-950">
-                    {signAslVidref ? (
-                      <SignAslVideo key={`${currentCard.id}-${signAslVidref}`} vidref={signAslVidref} />
-                    ) : mediaUrl && isVideoFile(mediaUrl) ? (
-                      <video
-                        key={mediaUrl}
-                        src={mediaUrl}
-                        controls
-                        autoPlay
-                        muted
-                        loop
-                        playsInline
-                        className="aspect-video w-full bg-slate-950 object-contain"
-                      />
-                    ) : (
-                      <div className="flex aspect-video items-center justify-center px-6 text-center text-sm text-slate-300">
-                        This flashcard does not have a playable ASL video yet.
+                  {isTimerEnabled && (
+                    <div
+                      className={`mb-3 rounded-2xl border px-3 py-2 ${
+                        timeLeft <= 5 ? 'border-rose-200 bg-rose-50 text-rose-800' : 'border-emerald-200 bg-emerald-50 text-emerald-900'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-3 text-xs font-bold">
+                        <span className="inline-flex items-center gap-1">
+                          <Clock className="size-3.5" />
+                          Time left: {timeLeft}s
+                        </span>
+                        <span>{getTimerPoints(timeLeft)} pts available</span>
                       </div>
-                    )}
+                      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/70">
+                        <div
+                          className={`h-full rounded-full transition-all ${timeLeft <= 5 ? 'bg-rose-500' : 'bg-emerald-500'}`}
+                          style={{ width: `${Math.round((timeLeft / CARD_TIME_LIMIT_SECONDS) * 100)}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="mx-auto grid max-w-5xl gap-3 lg:grid-cols-[minmax(0,1fr)_220px] lg:items-stretch">
+                    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-950">
+                      {signAslVidref ? (
+                        <SignAslVideo key={`${currentCard.id}-${signAslVidref}`} vidref={signAslVidref} />
+                      ) : mediaUrl && isVideoFile(mediaUrl) ? (
+                        <video
+                          key={mediaUrl}
+                          src={mediaUrl}
+                          controls
+                          autoPlay
+                          muted
+                          loop
+                          playsInline
+                          className="aspect-video max-h-[42vh] w-full bg-slate-950 object-contain"
+                        />
+                      ) : (
+                        <div className="flex aspect-video max-h-[42vh] items-center justify-center px-6 text-center text-sm text-slate-300">
+                          This flashcard does not have a playable ASL video yet.
+                        </div>
+                      )}
+                    </div>
+                    <div className="grid gap-3 rounded-2xl border border-emerald-100 bg-emerald-50 p-4 text-emerald-950 lg:content-center">
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-[0.14em] text-emerald-700">
+                          {isTimerEnabled ? 'Round points' : 'Round score'}
+                        </p>
+                        <p className="mt-2 text-5xl font-black leading-none">{score}</p>
+                      </div>
+                      {isTimerEnabled && (
+                        <div className="rounded-xl bg-white/75 px-3 py-2">
+                          <p className="text-xs font-semibold text-emerald-700">Available</p>
+                          <p className="text-xl font-black">{getTimerPoints(timeLeft)} pts</p>
+                        </div>
+                      )}
+                      <div className="rounded-xl bg-white/75 px-3 py-2">
+                        <p className="text-xs font-semibold text-emerald-700">Progress</p>
+                        <p className="text-xl font-black">{progressLabel}</p>
+                      </div>
+                    </div>
                   </div>
 
                   {sourceUrl && hasAnswered && (
@@ -655,14 +890,14 @@ export const Flashcards = () => {
                       href={sourceUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-emerald-700 hover:text-emerald-800"
+                      className="mt-2 inline-flex items-center gap-2 text-sm font-semibold text-emerald-700 hover:text-emerald-800"
                     >
                       Open video source
                       <ExternalLink className="size-4" />
                     </a>
                   )}
 
-                  <div className="mt-6 grid gap-4 sm:grid-cols-2">
+                  <div className="mx-auto mt-3 grid max-w-5xl gap-2 sm:grid-cols-2">
                     {answerOptions.map((answer) => {
                       const isSelected = selectedAnswer === answer;
                       const isRightAnswer = currentCard.word === answer;
@@ -675,7 +910,7 @@ export const Flashcards = () => {
                           type="button"
                           onClick={() => handleAnswer(answer)}
                           disabled={hasAnswered}
-                          className={`flex min-h-16 items-center justify-between rounded-2xl border px-5 py-4 text-left text-base font-semibold shadow-sm transition ${
+                          className={`flex min-h-12 items-center justify-between rounded-2xl border px-4 py-3 text-left text-base font-semibold shadow-sm transition ${
                             showCorrect
                               ? 'border-emerald-400 bg-emerald-50 text-emerald-800 ring-2 ring-emerald-100'
                               : showWrong
@@ -693,15 +928,21 @@ export const Flashcards = () => {
 
                   {hasAnswered && (
                     <div
-                      className={`mt-5 rounded-2xl px-4 py-3 text-sm font-semibold ${
+                      className={`mx-auto mt-3 max-w-5xl rounded-2xl px-4 py-3 text-sm font-semibold ${
                         isCorrect ? 'bg-emerald-50 text-emerald-800' : 'bg-rose-50 text-rose-800'
                       }`}
                     >
-                      {isCorrect ? 'Correct!' : `Not quite. The answer is: ${currentCard.word}`}
+                      {timedOut
+                        ? `Time's up. The answer is: ${currentCard.word}`
+                        : isCorrect
+                          ? isTimerEnabled
+                            ? `Correct! +${lastAnswerPoints} pts`
+                            : 'Correct!'
+                          : `Not quite. The answer is: ${currentCard.word}`}
                     </div>
                   )}
 
-                  <div className="mt-5 flex justify-end">
+                  <div className="mx-auto mt-3 flex max-w-5xl justify-end">
                     <button
                       type="button"
                       onClick={handleNext}
@@ -716,13 +957,6 @@ export const Flashcards = () => {
               )}
             </section>
 
-            <aside className="grid content-start gap-4">
-              <StatTile label="Topic" value={selectedTopicLabel} icon={Layers} />
-              <StatTile label="Topic progress" value={`${selectedTopicProgress}%`} icon={BookOpen} />
-              <StatTile label="Round score" value={String(score)} icon={Trophy} />
-              <StatTile label="Total score" value={String(userScore?.total_score || 0)} icon={CheckCircle2} />
-              <StatTile label="Practice rounds" value={String(userScore?.attempts || 0)} icon={RefreshCw} />
-            </aside>
           </>
         )}
       </div>
