@@ -23,37 +23,25 @@
     --secondary-foreground: 222.2 47.4% 11.2%;
   }
   .dark {
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.205 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.205 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.922 0 0);
-    --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.556 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.488 0.243 264.376);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.556 0 0)
+    --background: 222 47% 6%;
+    --foreground: 210 40% 96%;
+    --card: 222 35% 10%;
+    --card-foreground: 210 40% 96%;
+    --popover: 222 35% 10%;
+    --popover-foreground: 210 40% 96%;
+    --primary: 210 40% 96%;
+    --primary-foreground: 222 35% 10%;
+    --secondary: 217 24% 17%;
+    --secondary-foreground: 210 40% 96%;
+    --muted: 217 24% 17%;
+    --muted-foreground: 215 20% 72%;
+    --accent: 217 24% 17%;
+    --accent-foreground: 210 40% 96%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 210 40% 96%;
+    --border: 217 24% 22%;
+    --input: 217 24% 22%;
+    --ring: 158 64% 52%;
   }
   * {
     @apply border-border outline-ring/50;
@@ -63,5 +51,71 @@
   }
   html {
     @apply font-sans;
+  }
+}
+
+@layer components {
+  .dark [class~="bg-[#f6f7f1]"],
+  .dark [class~="bg-[#f6f7f1]/85"] {
+    background-color: rgb(9 14 26 / 1) !important;
+  }
+
+  .dark [class~="bg-white"],
+  .dark [class~="bg-white/70"],
+  .dark [class~="bg-white/80"],
+  .dark [class~="bg-white/82"],
+  .dark [class~="bg-white/86"],
+  .dark [class~="bg-white/90"],
+  .dark [class~="bg-slate-50"],
+  .dark [class~="bg-slate-50/80"],
+  .dark [class~="bg-slate-100"] {
+    background-color: rgb(15 23 42 / 1) !important;
+  }
+
+  .dark [class~="bg-emerald-50"] {
+    background-color: rgb(6 78 59 / 0.28) !important;
+  }
+
+  .dark [class~="bg-rose-50"] {
+    background-color: rgb(127 29 29 / 0.24) !important;
+  }
+
+  .dark [class~="border-slate-200"],
+  .dark [class~="border-slate-300"],
+  .dark [class~="border-emerald-100"],
+  .dark [class~="border-rose-200"] {
+    border-color: rgb(51 65 85 / 1) !important;
+  }
+
+  .dark [class~="text-slate-950"],
+  .dark [class~="text-slate-900"],
+  .dark [class~="text-slate-800"],
+  .dark [class~="text-slate-700"] {
+    color: rgb(241 245 249 / 1) !important;
+  }
+
+  .dark [class~="text-slate-600"],
+  .dark [class~="text-slate-500"],
+  .dark [class~="text-slate-400"] {
+    color: rgb(148 163 184 / 1) !important;
+  }
+
+  .dark [class~="text-emerald-700"],
+  .dark [class~="text-emerald-800"],
+  .dark [class~="text-emerald-950"] {
+    color: rgb(110 231 183 / 1) !important;
+  }
+
+  .dark input,
+  .dark textarea,
+  .dark select {
+    background-color: rgb(15 23 42 / 1) !important;
+    border-color: rgb(51 65 85 / 1) !important;
+    color: rgb(241 245 249 / 1) !important;
+  }
+
+  .dark input::placeholder,
+  .dark textarea::placeholder {
+    color: rgb(100 116 139 / 1) !important;
   }
 }

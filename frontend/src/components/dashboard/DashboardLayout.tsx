@@ -1,7 +1,7 @@
-import { BookOpenCheck, LogOut, Sparkles, UserCircle } from 'lucide-react';
+import { BookOpenCheck, LogOut, Moon, Sparkles, Sun, UserCircle } from 'lucide-react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { API_BASE_URL } from '../../api/client';
-import { useAuth } from '../../hooks';
+import { useAuth, useTheme } from '../../hooks';
 import { dashboardNavItems } from './dashboardNav';
 
 const getAvatarSrc = (avatarUrl?: string | null) => {
@@ -12,6 +12,7 @@ const getAvatarSrc = (avatarUrl?: string | null) => {
 
 export const DashboardLayout = () => {
   const { user, logout } = useAuth();
+  const { isDarkMode, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -81,6 +82,16 @@ export const DashboardLayout = () => {
               </div>
 
               <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={toggleTheme}
+                  aria-label={isDarkMode ? 'Switch to light mode' : 'Switch to night mode'}
+                  title={isDarkMode ? 'Light mode' : 'Night mode'}
+                  className="inline-flex h-11 items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                >
+                  {isDarkMode ? <Sun className="size-4" /> : <Moon className="size-4" />}
+                  <span className="hidden lg:inline">{isDarkMode ? 'Light' : 'Night'}</span>
+                </button>
                 <div className="hidden items-center gap-3 rounded-2xl border border-slate-200 bg-white px-3 py-2 md:flex">
                   <div className="flex size-9 items-center justify-center overflow-hidden rounded-xl bg-slate-950 text-white">
                     {avatarSrc ? (

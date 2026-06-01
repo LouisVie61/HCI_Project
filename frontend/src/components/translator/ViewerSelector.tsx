@@ -8,8 +8,8 @@ interface ViewerSelectorProps {
 }
 
 const options = [
-  { value: 'video' as const, label: 'Video', icon: Clapperboard },
   { value: 'pose' as const, label: 'Pose', icon: UserRound },
+  { value: 'video' as const, label: 'Video', icon: Clapperboard },
 ];
 
 export const ViewerSelector = ({ value, onChange }: ViewerSelectorProps) => (
