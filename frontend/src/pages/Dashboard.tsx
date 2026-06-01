@@ -66,19 +66,6 @@ export const Dashboard = () => (
             </Link>
           </div>
         </div>
-
-        <div className="grid content-end gap-3">
-          <div className="rounded-3xl border border-white/10 bg-white/10 p-5">
-            <p className="text-sm text-slate-300">Features</p>
-            <p className="mt-2 text-3xl font-semibold text-white">6</p>
-            <p className="mt-1 text-xs text-slate-400">Available as dedicated pages</p>
-          </div>
-          <div className="rounded-3xl border border-white/10 bg-white/10 p-5">
-            <p className="text-sm text-slate-300">Status</p>
-            <p className="mt-2 text-3xl font-semibold text-white">Demo</p>
-            <p className="mt-1 text-xs text-slate-400">Ready for backend integration</p>
-          </div>
-        </div>
       </div>
     </section>
 
