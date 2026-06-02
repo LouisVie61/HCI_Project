@@ -23,9 +23,9 @@
     --secondary-foreground: 222.2 47.4% 11.2%;
   }
   .dark {
-    --background: 222 47% 6%;
+    --background: 222 45% 8%;
     --foreground: 210 40% 96%;
-    --card: 222 35% 10%;
+    --card: 222 32% 12%;
     --card-foreground: 210 40% 96%;
     --popover: 222 35% 10%;
     --popover-foreground: 210 40% 96%;
@@ -57,7 +57,7 @@
 @layer components {
   .dark [class~="bg-[#f6f7f1]"],
   .dark [class~="bg-[#f6f7f1]/85"] {
-    background-color: rgb(9 14 26 / 1) !important;
+    background-color: rgb(11 18 32 / 1) !important;
   }
 
   .dark [class~="bg-white"],
@@ -69,15 +69,24 @@
   .dark [class~="bg-slate-50"],
   .dark [class~="bg-slate-50/80"],
   .dark [class~="bg-slate-100"] {
-    background-color: rgb(15 23 42 / 1) !important;
+    background-color: rgb(19 30 52 / 1) !important;
   }
 
   .dark [class~="bg-emerald-50"] {
-    background-color: rgb(6 78 59 / 0.28) !important;
+    background-color: rgb(12 47 45 / 1) !important;
   }
 
   .dark [class~="bg-rose-50"] {
-    background-color: rgb(127 29 29 / 0.24) !important;
+    background-color: rgb(76 22 32 / 1) !important;
+  }
+
+  .dark [class~="bg-white/70"],
+  .dark [class~="bg-white/75"],
+  .dark [class~="bg-white/80"],
+  .dark [class~="bg-white/82"],
+  .dark [class~="bg-white/86"],
+  .dark [class~="bg-white/90"] {
+    background-color: rgb(24 37 61 / 0.92) !important;
   }
 
   .dark [class~="border-slate-200"],
@@ -97,13 +106,18 @@
   .dark [class~="text-slate-600"],
   .dark [class~="text-slate-500"],
   .dark [class~="text-slate-400"] {
-    color: rgb(148 163 184 / 1) !important;
+    color: rgb(180 195 216 / 1) !important;
   }
 
   .dark [class~="text-emerald-700"],
   .dark [class~="text-emerald-800"],
   .dark [class~="text-emerald-950"] {
-    color: rgb(110 231 183 / 1) !important;
+    color: rgb(118 240 197 / 1) !important;
+  }
+
+  .dark [class~="bg-emerald-500"],
+  .dark [class~="bg-emerald-600"] {
+    background-color: rgb(45 212 155 / 1) !important;
   }
 
   .dark input,

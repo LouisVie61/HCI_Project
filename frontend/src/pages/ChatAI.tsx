@@ -398,9 +398,9 @@ export const ChatAI = () => {
   };
 
   return (
-    <div className="min-h-[100dvh] bg-[radial-gradient(circle_at_top,_rgba(8,145,178,0.18),_transparent_32%),linear-gradient(180deg,_#f8fafc_0%,_#fff9f0_100%)] text-slate-900 min-[960px]:h-[100dvh] min-[960px]:overflow-hidden">
+    <div className="min-h-[100dvh] bg-[radial-gradient(circle_at_top,_rgba(8,145,178,0.18),_transparent_32%),linear-gradient(180deg,_#f8fafc_0%,_#fff9f0_100%)] text-slate-900 dark:bg-none dark:bg-slate-950 min-[960px]:h-[100dvh] min-[960px]:overflow-hidden">
       <div className="mx-auto flex min-h-[100dvh] max-w-[1500px] flex-col gap-4 px-3 py-3 min-[960px]:h-full min-[960px]:min-h-0 min-[960px]:flex-row min-[960px]:px-4 min-[960px]:py-4">
-        <aside className="flex w-full shrink-0 flex-col overflow-hidden rounded-[30px] border border-white/70 bg-white/80 p-5 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur min-[960px]:h-full min-[960px]:w-[300px] min-[960px]:min-h-0 min-[960px]:p-6">
+        <aside className="flex w-full shrink-0 flex-col overflow-hidden rounded-[30px] border border-slate-200 bg-white/80 p-5 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur min-[960px]:h-full min-[960px]:w-[300px] min-[960px]:min-h-0 min-[960px]:p-6">
           <div>
             <div className="inline-flex items-center gap-2 rounded-full bg-cyan-950 px-4 py-2 text-sm font-semibold text-cyan-50">
               <Bot className="size-4" /> GPT-5 Nano
@@ -429,7 +429,7 @@ export const ChatAI = () => {
           </div>
         </aside>
 
-        <main className="flex min-w-0 flex-1 flex-col overflow-hidden rounded-[30px] border border-white/70 bg-white/82 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur min-[960px]:min-h-0">
+        <main className="flex min-w-0 flex-1 flex-col overflow-hidden rounded-[30px] border border-slate-200 bg-white/82 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur min-[960px]:min-h-0">
           <header className="shrink-0 border-b border-slate-200/80 px-4 py-4 sm:px-6">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">

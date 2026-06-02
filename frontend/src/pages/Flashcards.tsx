@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ChevronRight, Clock, ExternalLink, Layers, RefreshCw, Trophy, XCircle, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, ChevronRight, Clock, ExternalLink, Layers, Trophy, XCircle, CheckCircle2 } from 'lucide-react';
 import { flashcardApi } from '../api/endpoints';
 import { LoadingState, NoticeState, PanelShell } from '../components/dashboard/DashboardShell';
 import { useAuth, useFlashcards } from '../hooks';
@@ -622,16 +622,6 @@ export const Flashcards = () => {
       eyebrow="Flashcard"
       title="Guess the ASL sign"
       description="Watch the sign video, choose the correct answer, and save your score at the end of the round."
-      action={
-        <button
-          type="button"
-          onClick={refetch}
-          className="inline-flex h-11 items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-        >
-          <RefreshCw className="size-4" />
-          New deck
-        </button>
-      }
     >
       <div className="grid gap-5 lg:grid-cols-[1fr_320px]">
         {!selectedTopic ? (
@@ -703,9 +693,19 @@ export const Flashcards = () => {
           <>
             <section className="rounded-[28px] border border-slate-200 bg-white p-4 shadow-sm lg:col-span-2">
               <div className="mb-3 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                <div className="min-w-0">
-                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700">Topic</p>
-                  <h3 className="mt-0.5 truncate text-lg font-semibold text-slate-950">{selectedTopicLabel}</h3>
+                <div className="flex min-w-0 items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedTopic(null)}
+                    className="inline-flex h-10 shrink-0 items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                  >
+                    <ArrowLeft className="size-4" />
+                    Back
+                  </button>
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700">Topic</p>
+                    <h3 className="mt-0.5 truncate text-lg font-semibold text-slate-950">{selectedTopicLabel}</h3>
+                  </div>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                   {currentCard && (
@@ -737,13 +737,6 @@ export const Flashcards = () => {
                     <Clock className="size-4" />
                     Timer {isTimerEnabled ? 'On' : 'Off'}
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedTopic(null)}
-                    className="inline-flex h-9 items-center justify-center rounded-2xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-                  >
-                    Change topic
-                  </button>
                 </div>
               </div>
 
@@ -760,15 +753,15 @@ export const Flashcards = () => {
                       onClick={() => setSelectedDifficulty(option.value)}
                       className={`rounded-2xl border px-3 py-2 text-left transition ${
                         isActive
-                          ? 'border-emerald-400 bg-emerald-50 text-emerald-900 ring-2 ring-emerald-100'
-                          : 'border-slate-200 bg-white text-slate-700 hover:border-emerald-200 hover:bg-emerald-50'
+                          ? 'border-emerald-400 bg-emerald-50 text-emerald-900 ring-2 ring-emerald-100 dark:border-emerald-300 dark:bg-emerald-950/60 dark:text-white dark:ring-emerald-300/30'
+                          : 'border-slate-200 bg-white text-slate-700 hover:border-emerald-200 hover:bg-emerald-50 dark:border-slate-600 dark:bg-slate-800/70 dark:text-slate-100 dark:hover:border-emerald-300 dark:hover:bg-slate-700'
                       }`}
                     >
                       <span className="flex items-center justify-between gap-3">
                         <span className="text-sm font-bold">{option.label}</span>
                         <span className="text-xs font-semibold text-emerald-700">{levelProgress}%</span>
                       </span>
-                      <span className="mt-1 block h-1.5 overflow-hidden rounded-full bg-slate-100">
+                      <span className="mt-1 block h-1.5 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-950">
                         <span className="block h-full rounded-full bg-emerald-500" style={{ width: `${levelProgress}%` }} />
                       </span>
                     </button>
@@ -791,7 +784,9 @@ export const Flashcards = () => {
                   {isTimerEnabled && (
                     <div
                       className={`mb-3 rounded-2xl border px-3 py-2 ${
-                        timeLeft <= 5 ? 'border-rose-200 bg-rose-50 text-rose-800' : 'border-emerald-200 bg-emerald-50 text-emerald-900'
+                        timeLeft <= 5
+                          ? 'border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-400 dark:bg-rose-950/70 dark:text-rose-100'
+                          : 'border-emerald-200 bg-emerald-50 text-emerald-900 dark:border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-50'
                       }`}
                     >
                       <div className="flex items-center justify-between gap-3 text-xs font-bold">
@@ -801,7 +796,7 @@ export const Flashcards = () => {
                         </span>
                         <span>{getTimerPoints(timeLeft)} pts available</span>
                       </div>
-                      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/70">
+                      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/70 dark:bg-slate-950">
                         <div
                           className={`h-full rounded-full transition-all ${timeLeft <= 5 ? 'bg-rose-500' : 'bg-emerald-500'}`}
                           style={{ width: `${Math.round((timeLeft / CARD_TIME_LIMIT_SECONDS) * 100)}%` }}
