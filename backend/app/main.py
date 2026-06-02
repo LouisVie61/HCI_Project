@@ -118,7 +118,7 @@ app.include_router(router)
 @app.get("/")
 async def root():
     logger.info("GET / - Root endpoint")
-    return {"message": "Sign Language Support System API"}
+    return {"message": "SignBridge API"}
 
 @app.get("/health")
 async def health():
