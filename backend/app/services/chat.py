@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from chat_ai import OpenRouterChatClient
 from repositories import ChatRepository
+from prompts.chat_feature_context import APP_FEATURE_KNOWLEDGE_BASE
 from schemas.chat import (
     ChatAttachmentResponse,
     ChatConversationDetail,
@@ -27,18 +28,24 @@ logger = logging.getLogger(__name__)
 
 CHAT_SYSTEM_PROMPT = (
     "You are an AI chatbot for a sign language learning platform. "
-    "Reply in Vietnamese by default, keep answers clear and practical, and explain sign-language concepts in simple terms when relevant. "
-    "Prefer short answers under 180 Vietnamese words unless the user explicitly asks for detail. "
+    "Always reply in English unless the user explicitly requests another language, keep answers clear and practical, and explain sign-language concepts in simple terms when relevant. "
+    "Prefer short answers under 180 English words unless the user explicitly asks for detail. "
+    "When the user asks about app features, pages, usage, supported actions, or product limitations, use the app feature knowledge base and follow its user-facing guidance. "
     "When users attach images, analyze them directly. When users attach videos or generic files, use only the provided metadata or extracted text and briefly state any limitation."
 )
 
 SIGN_EXPLANATION_PROMPT = (
-    "You are a Vietnamese sign language tutor. "
+    "You are a sign language tutor. Respond in English. "
     "Explain the meaning of the sign, when it is used, and give one short practice tip."
 )
 
 MAX_HISTORY_MESSAGES = 12
 MAX_PREVIEW_LENGTH = 96
+
+APP_FEATURE_CONTEXT_INTRO = (
+    "App feature context: use the following knowledge base only for questions about the app's features, user flows, or product limitations. "
+    "For those app-feature answers, follow the knowledge base instruction to answer in the same language as the user."
+)
 
 
 class ChatService:
@@ -133,14 +140,14 @@ class ChatService:
                 {"role": "system", "content": SIGN_EXPLANATION_PROMPT},
                 {
                     "role": "user",
-                    "content": f"Hãy giải thích ký hiệu '{sign.strip()}' bằng tiếng Việt.",
+                    "content": f"Explain the sign '{sign.strip()}' in English.",
                 },
             ]
         )
 
         content = (result.get("content") or "").strip()
         if not content:
-            content = "Mình chưa giải thích được ký hiệu này. Bạn hãy thử lại với từ khác."
+            content = "I could not explain this sign yet. Please try a different one."
 
         return ChatMessageResponse(
             id=str(uuid4()),
@@ -182,7 +189,13 @@ class ChatService:
         return conversation
 
     def _build_model_messages(self, conversation_id: UUID) -> list[dict[str, Any]]:
-        messages: list[dict[str, Any]] = [{"role": "system", "content": CHAT_SYSTEM_PROMPT}]
+        messages: list[dict[str, Any]] = [
+            {"role": "system", "content": CHAT_SYSTEM_PROMPT},
+            {
+                "role": "system",
+                "content": f"{APP_FEATURE_CONTEXT_INTRO}\n\n{APP_FEATURE_KNOWLEDGE_BASE}",
+            },
+        ]
         conversation_messages = self.repository.get_recent_messages(conversation_id, MAX_HISTORY_MESSAGES)
         latest_user_message_id = next(
             (
@@ -290,7 +303,7 @@ class ChatService:
             return normalized
 
         logger.warning("OpenRouter returned an empty chat response")
-        return "Mình chưa có câu trả lời phù hợp. Bạn hãy thử hỏi lại ngắn gọn hơn."
+        return "I do not have a good answer yet. Please try asking again more briefly."
 
     def _truncate_preview(self, content: str, limit: int = MAX_PREVIEW_LENGTH) -> str:
         compact = " ".join(content.split())
