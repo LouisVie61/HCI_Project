@@ -1,4 +1,5 @@
-import { BookOpenCheck, LogOut, Moon, Sparkles, Sun, UserCircle } from 'lucide-react';
+import { BookOpenCheck, LogOut, Moon, PanelLeftClose, PanelLeftOpen, Sparkles, Sun, UserCircle } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { API_BASE_URL } from '../../api/client';
 import { useAuth, useTheme } from '../../hooks';
@@ -10,11 +11,14 @@ const getAvatarSrc = (avatarUrl?: string | null) => {
   return `${API_BASE_URL}${avatarUrl}`;
 };
 
+const SIDEBAR_COLLAPSED_KEY = 'dashboard_sidebar_collapsed';
+
 export const DashboardLayout = () => {
   const { user, logout } = useAuth();
   const { isDarkMode, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => window.localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === 'true');
 
   const activeItem =
     [...dashboardNavItems]
@@ -30,11 +34,19 @@ export const DashboardLayout = () => {
     navigate('/login');
   };
 
+  useEffect(() => {
+    window.localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(isSidebarCollapsed));
+  }, [isSidebarCollapsed]);
+
   return (
     <main className="min-h-screen bg-[#f6f7f1] text-slate-950">
       <div className="flex min-h-screen">
-        <aside className="fixed inset-y-0 left-0 z-30 hidden w-72 border-r border-slate-200 bg-white/90 px-4 py-5 shadow-sm backdrop-blur xl:flex xl:flex-col">
-          <BrandBlock />
+        <aside
+          className={`fixed inset-y-0 left-0 z-30 hidden border-r border-slate-200 bg-white/90 px-4 py-5 shadow-sm backdrop-blur transition-[width] duration-200 xl:flex xl:flex-col ${
+            isSidebarCollapsed ? 'w-20' : 'w-72'
+          }`}
+        >
+          <BrandBlock isCollapsed={isSidebarCollapsed} onToggle={() => setIsSidebarCollapsed((current) => !current)} />
 
           <nav className="mt-8 space-y-1">
             {dashboardNavItems.map((item) => {
@@ -46,21 +58,22 @@ export const DashboardLayout = () => {
                   to={item.path}
                   end={item.path === '/dashboard'}
                   className={({ isActive }) =>
-                    `flex h-12 w-full items-center gap-3 rounded-2xl px-4 text-sm font-semibold transition ${
+                    `flex h-12 w-full items-center rounded-2xl text-sm font-semibold transition ${
                       isActive
                         ? 'bg-slate-950 text-white shadow-lg shadow-slate-900/15'
                         : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950'
-                    }`
+                    } ${isSidebarCollapsed ? 'justify-center px-0' : 'gap-3 px-4'}`
                   }
+                  title={isSidebarCollapsed ? item.label : undefined}
                 >
-                  <Icon className="size-5" />
-                  {item.label}
+                  <Icon className="size-5 shrink-0" />
+                  {!isSidebarCollapsed && <span>{item.label}</span>}
                 </NavLink>
               );
             })}
           </nav>
 
-          <div className="mt-auto rounded-3xl border border-emerald-100 bg-emerald-50 p-4">
+          {!isSidebarCollapsed && <div className="mt-auto rounded-3xl border border-emerald-100 bg-emerald-50 p-4">
             <div className="flex items-center gap-3">
               <div className="flex size-10 items-center justify-center rounded-2xl bg-emerald-600 text-white">
                 <Sparkles className="size-5" />
@@ -70,10 +83,10 @@ export const DashboardLayout = () => {
                 <p className="text-xs text-emerald-800">One small task is enough to keep momentum.</p>
               </div>
             </div>
-          </div>
+          </div>}
         </aside>
 
-        <div className="flex min-h-screen flex-1 flex-col xl:pl-72">
+        <div className={`flex min-h-screen flex-1 flex-col transition-[padding] duration-200 ${isSidebarCollapsed ? 'xl:pl-20' : 'xl:pl-72'}`}>
           <header className="sticky top-0 z-20 border-b border-slate-200 bg-[#f6f7f1]/85 backdrop-blur">
             <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
               <div className="min-w-0">
@@ -148,14 +161,32 @@ export const DashboardLayout = () => {
   );
 };
 
-const BrandBlock = () => (
-  <div className="flex items-center gap-3 px-2">
-    <div className="flex size-12 items-center justify-center rounded-2xl bg-slate-950 text-white shadow-lg shadow-slate-900/20">
-      <BookOpenCheck className="size-6" />
+const BrandBlock = ({ isCollapsed, onToggle }: { isCollapsed: boolean; onToggle: () => void }) => (
+  <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between gap-3 px-2'}`}>
+    <div className={`flex min-w-0 items-center gap-3 ${isCollapsed ? 'hidden' : ''}`}>
+      <div className="flex size-12 items-center justify-center rounded-2xl bg-slate-950 text-white shadow-lg shadow-slate-900/20">
+        <BookOpenCheck className="size-6" />
+      </div>
+      <div>
+        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-700">Sign</p>
+        <p className="text-lg font-semibold text-slate-950">Language</p>
+      </div>
     </div>
-    <div>
-      <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-700">Sign</p>
-      <p className="text-lg font-semibold text-slate-950">Language</p>
-    </div>
+    {isCollapsed && (
+      <div className="flex size-12 items-center justify-center rounded-2xl bg-slate-950 text-white shadow-lg shadow-slate-900/20">
+        <BookOpenCheck className="size-6" />
+      </div>
+    )}
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+      title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+      className={`inline-flex size-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-50 hover:text-slate-950 ${
+        isCollapsed ? 'absolute left-14 top-6 shadow-sm' : ''
+      }`}
+    >
+      {isCollapsed ? <PanelLeftOpen className="size-4" /> : <PanelLeftClose className="size-4" />}
+    </button>
   </div>
 );

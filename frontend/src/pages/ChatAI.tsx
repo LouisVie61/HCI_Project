@@ -242,7 +242,7 @@ function MessageBubble({ message }: { message: ChatMessage }) {
         </div>
       ) : null}
 
-      <div className={cn("max-w-[min(85%,48rem)] rounded-[26px] px-5 py-4 shadow-sm", isUser ? "rounded-br-md bg-slate-950 text-white" : "rounded-bl-md border border-slate-200 bg-stone-50 text-slate-900")}>
+      <div className={cn("max-w-[min(85%,48rem)] rounded-[26px] px-5 py-4 shadow-sm", isUser ? "rounded-br-md bg-slate-950 text-white" : "rounded-bl-md border border-slate-200 bg-white text-slate-900")}>
         {attachments.length ? (
           <div className={cn(message.content.trim() ? "mb-4" : "mb-0")}>
             <AttachmentGrid attachments={attachments} tone={isUser ? "user" : "assistant"} />
@@ -267,7 +267,7 @@ function TypingBubble() {
       <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-cyan-950 text-cyan-50 shadow-sm">
         <Bot className="size-5" />
       </div>
-      <div className="rounded-[26px] rounded-bl-md border border-slate-200 bg-stone-50 px-5 py-4 text-slate-500 shadow-sm">
+      <div className="rounded-[26px] rounded-bl-md border border-slate-200 bg-white px-5 py-4 text-slate-500 shadow-sm">
         <div className="flex items-center gap-2">
           <span className="size-2 animate-bounce rounded-full bg-slate-400 [animation-delay:-0.3s]" />
           <span className="size-2 animate-bounce rounded-full bg-slate-400 [animation-delay:-0.15s]" />
@@ -462,7 +462,7 @@ export const ChatAI = () => {
               </div>
             ) : !messages.length ? (
               <div className="mx-auto flex min-h-full w-full max-w-3xl flex-col justify-center py-4">
-                <div className="rounded-[32px] border border-slate-200 bg-[linear-gradient(135deg,rgba(255,255,255,0.92),rgba(241,245,249,0.96))] p-8 shadow-sm">
+                <div className="rounded-[32px] border border-slate-200 bg-white/90 p-8 shadow-sm">
                   <div className="inline-flex items-center gap-2 rounded-full bg-amber-100 px-3 py-1 text-sm font-medium text-amber-900">
                     <Sparkles className="size-4" /> Ready to support your learning
                   </div>

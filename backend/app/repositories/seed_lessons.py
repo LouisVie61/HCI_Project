@@ -6,7 +6,7 @@ import sys, os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from core.database import SessionLocal
-from models.lesson import Lesson
+from models.lesson import Lesson, LessonProgress
 
 db = SessionLocal()
 
@@ -161,6 +161,10 @@ lessons = [
            content="https://www.youtube.com/watch?v=QqwhGuxtJLk&list=PL6akqFwEeSpgI1uukfFiKLCIQzP4nd2yx&index=7",
            difficulty="advanced", order_index=30, is_published=True),
 ]
+
+db.query(LessonProgress).delete()
+db.query(Lesson).delete()
+db.commit()
 
 db.add_all(lessons)
 db.commit()
