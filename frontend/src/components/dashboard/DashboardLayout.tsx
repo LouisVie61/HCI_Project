@@ -1,4 +1,4 @@
-import { BookOpenCheck, LogOut, Moon, PanelLeftClose, PanelLeftOpen, Sparkles, Sun, UserCircle } from 'lucide-react';
+import { LogOut, Moon, PanelLeftClose, PanelLeftOpen, Sparkles, Sun, UserCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { API_BASE_URL } from '../../api/client';
@@ -12,6 +12,7 @@ const getAvatarSrc = (avatarUrl?: string | null) => {
 };
 
 const SIDEBAR_COLLAPSED_KEY = 'dashboard_sidebar_collapsed';
+const BRAND_LOGO_SRC = '/SignBride.png';
 
 export const DashboardLayout = () => {
   const { user, logout } = useAuth();
@@ -164,17 +165,16 @@ export const DashboardLayout = () => {
 const BrandBlock = ({ isCollapsed, onToggle }: { isCollapsed: boolean; onToggle: () => void }) => (
   <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between gap-3 px-2'}`}>
     <div className={`flex min-w-0 items-center gap-3 ${isCollapsed ? 'hidden' : ''}`}>
-      <div className="flex size-12 items-center justify-center rounded-2xl bg-slate-950 text-white shadow-lg shadow-slate-900/20">
-        <BookOpenCheck className="size-6" />
+      <div className="flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl shadow-lg shadow-slate-900/10">
+        <img src={BRAND_LOGO_SRC} alt="SignBridge" className="h-full w-full object-contain" />
       </div>
       <div>
-        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-700">Sign</p>
-        <p className="text-lg font-semibold text-slate-950">Language</p>
+        <p className="text-lg font-semibold text-slate-950">SignBridge</p>
       </div>
     </div>
     {isCollapsed && (
-      <div className="flex size-12 items-center justify-center rounded-2xl bg-slate-950 text-white shadow-lg shadow-slate-900/20">
-        <BookOpenCheck className="size-6" />
+      <div className="flex size-12 items-center justify-center overflow-hidden rounded-2xl shadow-lg shadow-slate-900/10">
+        <img src={BRAND_LOGO_SRC} alt="SignBridge" className="h-full w-full object-contain" />
       </div>
     )}
     <button

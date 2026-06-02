@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowRight, BadgeCheck, BookOpenCheck } from 'lucide-react';
+import { ArrowRight, BadgeCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { LoginForm } from '../components/auth/LoginForm';
 import { SignupForm } from '../components/auth/SignupForm';
@@ -10,6 +10,7 @@ const highlights = [
   'Practice with quick, easy-to-understand feedback',
   'Track your learning progress in the dashboard',
 ];
+const BRAND_LOGO_SRC = '/public/SignBridge.png';
 
 export const Login = () => {
   const navigate = useNavigate();
@@ -29,11 +30,11 @@ export const Login = () => {
           <div className="relative z-10 flex w-full flex-col justify-between rounded-[28px] p-8">
             <div className="flex items-center gap-3">
               <div className="flex size-11 items-center justify-center rounded-2xl bg-white text-slate-950 shadow-lg">
-                <BookOpenCheck className="size-6" />
+                <img src={BRAND_LOGO_SRC} alt="SignBridge" className="size-8 object-contain" />
               </div>
               <div>
                 <p className="text-sm font-semibold uppercase tracking-[0.24em] text-emerald-200">
-                  Sign Language
+                  SignBridge
                 </p>
                 <p className="text-sm text-white/62">Learning companion</p>
               </div>
@@ -66,10 +67,10 @@ export const Login = () => {
           <div className="w-full max-w-[460px]">
             <div className="mb-8 lg:hidden">
               <div className="mb-5 flex size-12 items-center justify-center rounded-2xl bg-slate-950 text-white shadow-xl shadow-slate-300">
-                <BookOpenCheck className="size-6" />
+                <img src={BRAND_LOGO_SRC} alt="SignBridge" className="size-8 object-contain" />
               </div>
               <p className="text-sm font-semibold uppercase tracking-[0.22em] text-emerald-700">
-                Sign Language
+                SignBridge
               </p>
               <h1 className="mt-2 text-3xl font-semibold text-slate-950">
                 Sign language learning, one step at a time.

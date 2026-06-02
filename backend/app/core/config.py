@@ -9,7 +9,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 class Settings(BaseSettings):
-    APP_NAME: str = "Sign Language Support System"
+    APP_NAME: str = "SignBridge"
     APP_VERSION: str = "0.0.1"
     DEBUG: bool = True
 
@@ -43,7 +43,7 @@ class Settings(BaseSettings):
     OPENROUTER_MAX_TOKENS: int = 400_000
     OPENROUTER_REASONING_EFFORT: str = "low"
     OPENROUTER_SITE_URL: str = "http://localhost:5173"
-    OPENROUTER_APP_NAME: str = "HCI Project"
+    OPENROUTER_APP_NAME: str = "SignBridge"
     UPLOADS_DIR: Path = BASE_DIR / "uploads"
     CHAT_ATTACHMENT_DIR: Path = BASE_DIR / "uploads" / "chat"
     CHAT_ATTACHMENT_MAX_FILES: int = 5
