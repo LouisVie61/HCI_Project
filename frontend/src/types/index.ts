@@ -5,6 +5,7 @@ export interface User {
   email: string;
   phone_number?: string | null;
   avatar_url?: string | null;
+  auth_provider?: 'local' | 'google';
   role: 'user' | 'admin';
   created_at: string;
 }

@@ -18,6 +18,7 @@ interface Window {
             width?: number | string;
             text?: 'signup_with' | 'signin_with' | 'continue_with';
             shape?: 'rectangular' | 'pill' | 'circle' | 'square';
+            locale?: string;
           },
         ) => void;
         prompt: () => void;

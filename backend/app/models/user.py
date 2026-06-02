@@ -14,6 +14,7 @@ class User(Base):
     phone_number = Column(String, unique=True, nullable=True, index=True)
     avatar_url = Column(String, nullable=True)
     password_hash = Column(String, nullable=False)
+    auth_provider = Column(String, default="local", nullable=False)  # local, google
     role = Column(String, default="user", nullable=False)  # user, admin
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

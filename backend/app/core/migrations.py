@@ -8,6 +8,8 @@ def ensure_user_profile_columns(engine: Engine) -> None:
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS full_name VARCHAR",
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS phone_number VARCHAR",
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url VARCHAR",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS auth_provider VARCHAR DEFAULT 'local' NOT NULL",
+        "UPDATE users SET auth_provider = 'local' WHERE auth_provider IS NULL",
         "CREATE UNIQUE INDEX IF NOT EXISTS ix_users_phone_number ON users (phone_number)",
     ]
 

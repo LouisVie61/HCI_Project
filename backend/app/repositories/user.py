@@ -11,12 +11,13 @@ class UserRepository:
     def __init__(self, db: Session):
         self.db = db
 
-    def create(self, email: str, password: str, full_name: str | None = None) -> User:
+    def create(self, email: str, password: str, full_name: str | None = None, auth_provider: str = "local") -> User:
         """Create a new user"""
         user = User(
             email=email,
             full_name=full_name,
             password_hash=hash_password(password),
+            auth_provider=auth_provider,
         )
         self.db.add(user)
         self.db.commit()
