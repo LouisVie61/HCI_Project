@@ -233,9 +233,8 @@ const ProfileForm = ({
 
         <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm lg:col-span-2">
           <h3 className="text-lg font-semibold text-slate-950">Account information</h3>
-          <div className="mt-5 grid gap-3 md:grid-cols-3">
+          <div className="mt-5 grid gap-3 md:grid-cols-2">
             <InfoRow icon={Mail} label="Email" value={user.email || 'Not set'} />
-            <InfoRow icon={UserCircle} label="Role" value={user.role || 'user'} />
             <InfoRow icon={CheckCircle2} label="Created" value={formatUserDate(user.created_at)} />
           </div>
         </section>
