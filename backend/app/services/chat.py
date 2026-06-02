@@ -44,7 +44,7 @@ MAX_PREVIEW_LENGTH = 96
 
 APP_FEATURE_CONTEXT_INTRO = (
     "App feature context: use the following knowledge base only for questions about the app's features, user flows, or product limitations. "
-    "For those app-feature answers, follow the knowledge base instruction to answer in the same language as the user."
+    "Treat it as product reference material, but still answer in English unless the user explicitly requests another language."
 )
 
 
