@@ -4,7 +4,7 @@ import { ArrowLeft, BookOpenText, Bot, File, FileImage, FileText, FileVideo, Loa
 
 import { API_BASE_URL } from "../api/client";
 import { Button } from "../components/ui/button";
-import { useAuth, useChat } from "../hooks";
+import { useAuth, useChat, useTheme } from "../hooks";
 import { cn } from "../lib/utils";
 import { ChatAttachment, ChatAttachmentKind, ChatConversationSummary, ChatMessage, ComposerAttachment } from "../types";
 
@@ -281,6 +281,7 @@ function TypingBubble() {
 export const ChatAI = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { isDarkMode } = useTheme();
   const { messages, conversations, activeConversationId, loading, loadingHistory, error, sendMessage, selectConversation, startNewConversation, deleteConversation } = useChat();
   const [input, setInput] = useState("");
   const [composerAttachments, setComposerAttachments] = useState<ComposerAttachment[]>([]);
@@ -398,15 +399,15 @@ export const ChatAI = () => {
   };
 
   return (
-    <div className="min-h-[100dvh] bg-[radial-gradient(circle_at_top,_rgba(8,145,178,0.18),_transparent_32%),linear-gradient(180deg,_#f8fafc_0%,_#fff9f0_100%)] text-slate-900 dark:bg-none dark:bg-slate-950 min-[960px]:h-[100dvh] min-[960px]:overflow-hidden">
+    <div className={cn("min-h-[100dvh] min-[960px]:h-[100dvh] min-[960px]:overflow-hidden", isDarkMode ? "bg-slate-950 text-slate-100" : "bg-slate-50 text-slate-900")}>
       <div className="mx-auto flex min-h-[100dvh] max-w-[1500px] flex-col gap-4 px-3 py-3 min-[960px]:h-full min-[960px]:min-h-0 min-[960px]:flex-row min-[960px]:px-4 min-[960px]:py-4">
-        <aside className="flex w-full shrink-0 flex-col overflow-hidden rounded-[30px] border border-slate-200 bg-white/80 p-5 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur min-[960px]:h-full min-[960px]:w-[300px] min-[960px]:min-h-0 min-[960px]:p-6">
+        <aside className={cn("flex w-full shrink-0 flex-col overflow-hidden rounded-[30px] border p-5 shadow-[0_24px_80px_rgba(15,23,42,0.08)] min-[960px]:h-full min-[960px]:w-[300px] min-[960px]:min-h-0 min-[960px]:p-6", isDarkMode ? "border-slate-700 bg-slate-900" : "border-slate-200 bg-white")}>
           <div>
             <div className="inline-flex items-center gap-2 rounded-full bg-cyan-950 px-4 py-2 text-sm font-semibold text-cyan-50">
               <Bot className="size-4" /> GPT-5 Nano
             </div>
             <h1 className="mt-5 text-[28px] font-semibold tracking-tight text-slate-950">AI Chat for Sign Language Learning</h1>
-            <p className="mt-3 text-sm leading-6 text-slate-600">A ChatGPT-style interface with saved threads and support for images, videos, and files.</p>
+            <p className="mt-3 text-sm leading-6 text-slate-600"></p>
           </div>
 
           <Button onClick={handleNewConversation} disabled={loading} className="mt-6 justify-start rounded-2xl bg-slate-950 text-white hover:bg-slate-800">
@@ -414,23 +415,23 @@ export const ChatAI = () => {
             New chat
           </Button>
 
-          <div className="mt-6 min-h-0 flex-1 overflow-hidden rounded-[26px] border border-slate-200 bg-slate-50/80 p-3">
+          <div className={cn("mt-6 min-h-0 flex-1 overflow-hidden rounded-[26px] border p-3", isDarkMode ? "border-slate-700 bg-slate-950" : "border-slate-200 bg-slate-50")}>
             <div className="mb-3 flex items-center justify-between px-2">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Chat history</p>
               {loadingHistory ? <LoaderCircle className="size-4 animate-spin text-slate-400" /> : <span className="text-[11px] text-slate-400">{conversations.length} thread</span>}
             </div>
 
-            <div className="min-h-0 space-y-1.5 overflow-y-auto pr-1">{conversations.length ? conversations.map((conversation) => <ConversationItem key={conversation.id} active={conversation.id === activeConversationId} conversation={conversation} disabled={loading} onDelete={deleteConversation} onSelect={selectConversation} />) : <div className="rounded-[22px] border border-dashed border-slate-300 bg-white/70 p-4 text-sm leading-6 text-slate-500">No chat history yet. Start a new conversation to save it like ChatGPT.</div>}</div>
+            <div className="min-h-0 space-y-1.5 overflow-y-auto pr-1">{conversations.length ? conversations.map((conversation) => <ConversationItem key={conversation.id} active={conversation.id === activeConversationId} conversation={conversation} disabled={loading} onDelete={deleteConversation} onSelect={selectConversation} />) : <div className={cn("rounded-[22px] border border-dashed p-4 text-sm leading-6", isDarkMode ? "border-slate-700 bg-slate-900 text-slate-300" : "border-slate-300 bg-white text-slate-500")}>No chat history yet. Start a new conversation to save it like ChatGPT.</div>}</div>
           </div>
 
-          <div className="mt-4 rounded-[24px] border border-dashed border-slate-300 bg-white/70 p-4 text-sm text-slate-600">
+          <div className={cn("mt-4 rounded-[24px] border border-dashed p-4 text-sm", isDarkMode ? "border-slate-700 bg-slate-950 text-slate-300" : "border-slate-300 bg-white text-slate-600")}>
             <p className="font-medium text-slate-900">Current user</p>
             <p className="mt-2 break-all">{user?.email}</p>
           </div>
         </aside>
 
-        <main className="flex min-w-0 flex-1 flex-col overflow-hidden rounded-[30px] border border-slate-200 bg-white/82 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur min-[960px]:min-h-0">
-          <header className="shrink-0 border-b border-slate-200/80 px-4 py-4 sm:px-6">
+        <main className={cn("flex min-w-0 flex-1 flex-col overflow-hidden rounded-[30px] border shadow-[0_24px_80px_rgba(15,23,42,0.08)] min-[960px]:min-h-0", isDarkMode ? "border-slate-700 bg-slate-900" : "border-slate-200 bg-white")}>
+          <header className={cn("shrink-0 border-b px-4 py-4 sm:px-6", isDarkMode ? "border-slate-700" : "border-slate-200")}>
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
                 <Button variant="outline" onClick={() => navigate("/dashboard")}>
@@ -439,7 +440,7 @@ export const ChatAI = () => {
                 </Button>
                 <div>
                   <p className="text-sm font-semibold text-slate-950">{activeConversation?.title || "New chat"}</p>
-                  <p className="text-sm text-slate-500">OpenRouter - GPT-5 Nano - history thread + streaming + attachments</p>
+                  <p className="text-sm text-slate-500"></p>
                 </div>
               </div>
 
@@ -449,7 +450,7 @@ export const ChatAI = () => {
               </Button>
             </div>
 
-            <div className="mt-3 h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent" />
+            <div className={cn("mt-3 h-px bg-gradient-to-r from-transparent to-transparent", isDarkMode ? "via-slate-700" : "via-slate-200")} />
           </header>
 
           <section className="min-h-0 flex-1 overflow-y-auto px-4 py-6 sm:px-8">
@@ -462,7 +463,7 @@ export const ChatAI = () => {
               </div>
             ) : !messages.length ? (
               <div className="mx-auto flex min-h-full w-full max-w-3xl flex-col justify-center py-4">
-                <div className="rounded-[32px] border border-slate-200 bg-white/90 p-8 shadow-sm">
+                <div className={cn("rounded-[32px] border p-8 shadow-sm", isDarkMode ? "border-slate-700 bg-slate-950" : "border-slate-200 bg-white")}>
                   <div className="inline-flex items-center gap-2 rounded-full bg-amber-100 px-3 py-1 text-sm font-medium text-amber-900">
                     <Sparkles className="size-4" /> Ready to support your learning
                   </div>
@@ -471,7 +472,7 @@ export const ChatAI = () => {
 
                   <div className="mt-8 grid gap-3 md:grid-cols-2">
                     {STARTER_PROMPTS.map((prompt) => (
-                      <button key={prompt} type="button" onClick={() => void handleSubmit(prompt)} className="rounded-[24px] border border-slate-200 bg-white px-4 py-4 text-left text-sm leading-6 text-slate-700 transition-all hover:-translate-y-0.5 hover:border-cyan-200 hover:shadow-md">
+                      <button key={prompt} type="button" onClick={() => void handleSubmit(prompt)} className={cn("rounded-[24px] border px-4 py-4 text-left text-sm leading-6 transition-all hover:-translate-y-0.5 hover:shadow-md", isDarkMode ? "border-slate-700 bg-slate-900 text-slate-200 hover:border-cyan-700" : "border-slate-200 bg-white text-slate-700 hover:border-cyan-200")}>
                         {prompt}
                       </button>
                     ))}
@@ -479,7 +480,7 @@ export const ChatAI = () => {
 
                   <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                     {SIDEBAR_NOTES.map((item) => (
-                      <div key={item.title} className="rounded-[22px] border border-slate-200 bg-white/90 p-4">
+                      <div key={item.title} className={cn("rounded-[22px] border p-4", isDarkMode ? "border-slate-700 bg-slate-900" : "border-slate-200 bg-white")}>
                         <div className="flex items-center gap-3 text-slate-950">
                           <div className="rounded-2xl bg-slate-100 p-2 text-cyan-700">
                             <item.icon className="size-4" />
@@ -503,14 +504,14 @@ export const ChatAI = () => {
             )}
           </section>
 
-          <footer className="shrink-0 border-t border-slate-200/80 bg-white/72 px-4 py-4 backdrop-blur sm:px-6">
+          <footer className={cn("shrink-0 border-t px-4 py-4 sm:px-6", isDarkMode ? "border-slate-700 bg-slate-900" : "border-slate-200 bg-white")}>
             <div className="mx-auto max-w-4xl">
               <input ref={fileInputRef} type="file" multiple className="hidden" onChange={handleFileInputChange} />
 
               {composerError ? <div className="mb-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">{composerError}</div> : null}
               {error ? <div className="mb-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div> : null}
 
-              <div className="rounded-[28px] border border-slate-200 bg-white p-3 shadow-sm">
+              <div className={cn("rounded-[28px] border p-3 shadow-sm", isDarkMode ? "border-slate-700 bg-slate-950" : "border-slate-200 bg-white")}>
                 <textarea value={input} onChange={(event) => setInput(event.target.value)} onKeyDown={(event) => void handleKeyDown(event)} onPaste={handlePaste} placeholder="Message AI about signs, lessons, or paste images/files here..." rows={3} disabled={loading || loadingHistory} className="min-h-[88px] w-full resize-none border-0 bg-transparent px-2 py-2 text-[15px] leading-7 text-slate-900 outline-none placeholder:text-slate-400 disabled:cursor-not-allowed" />
 
                 {composerAttachments.length ? (
