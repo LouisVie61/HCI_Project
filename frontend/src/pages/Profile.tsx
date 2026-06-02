@@ -85,6 +85,7 @@ const ProfileForm = ({
   const [avatarPreview, setAvatarPreview] = useState(getAvatarSrc(user.avatar_url));
 
   const displayName = useMemo(() => user.full_name?.trim() || 'Unnamed user', [user.full_name]);
+  const isGoogleAccount = user.auth_provider === 'google';
 
   const handleChange = (field: keyof ProfileFormState, value: string) => {
     setForm((current) => ({ ...current, [field]: value }));
@@ -124,7 +125,7 @@ const ProfileForm = ({
       return;
     }
 
-    if (!validators.email(form.email)) {
+    if (!isGoogleAccount && !validators.email(form.email)) {
       setValidationError('Please enter a valid email address.');
       return;
     }
@@ -136,7 +137,7 @@ const ProfileForm = ({
 
     const updatedUser = await updateProfile({
       full_name: form.full_name,
-      email: form.email,
+      email: isGoogleAccount ? undefined : form.email,
       phone_number: form.phone_number || null,
     });
 
@@ -206,6 +207,8 @@ const ProfileForm = ({
               value={form.email}
               onChange={(value) => handleChange('email', value)}
               placeholder="you@example.com"
+              disabled={isGoogleAccount}
+              helperText={isGoogleAccount ? 'Email is managed by your Google account.' : undefined}
             />
             <ProfileInput
               icon={Phone}
@@ -249,6 +252,8 @@ const ProfileInput = ({
   value,
   onChange,
   placeholder,
+  disabled = false,
+  helperText,
   type = 'text',
 }: {
   icon: LucideIcon;
@@ -256,6 +261,8 @@ const ProfileInput = ({
   value: string;
   onChange: (value: string) => void;
   placeholder: string;
+  disabled?: boolean;
+  helperText?: string;
   type?: string;
 }) => (
   <label className="block">
@@ -267,9 +274,11 @@ const ProfileInput = ({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
-        className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 px-12 text-sm outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10"
+        disabled={disabled}
+        className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 px-12 text-sm outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500"
       />
     </div>
+    {helperText && <span className="mt-2 block text-xs font-medium text-slate-500">{helperText}</span>}
   </label>
 );
 

@@ -90,6 +90,7 @@ class UserResponse(UserBase):
     full_name: str | None = None
     phone_number: str | None = None
     avatar_url: str | None = None
+    auth_provider: str = "local"
     role: str
     created_at: datetime
 

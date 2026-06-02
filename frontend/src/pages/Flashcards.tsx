@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, ChevronRight, Clock, ExternalLink, Layers, Trophy, XCircle, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, ChevronRight, Clock, ExternalLink, Layers, Play, Trophy, XCircle, CheckCircle2 } from 'lucide-react';
 import { flashcardApi } from '../api/endpoints';
 import { LoadingState, NoticeState, PanelShell } from '../components/dashboard/DashboardShell';
 import { useAuth, useFlashcards } from '../hooks';
@@ -31,6 +31,15 @@ type LeaderboardEntry = {
   correct: number;
   total: number;
   createdAt: string;
+};
+
+type RoundSummary = {
+  topicLabel: string;
+  difficulty: Difficulty;
+  score: number;
+  correct: number;
+  total: number;
+  isTimed: boolean;
 };
 
 const FLASHCARD_PROGRESS_KEY = 'asl-flashcard-topic-progress-v1';
@@ -286,18 +295,19 @@ const getTopic = (card: Flashcard): TopicId => {
 };
 
 const getProgressKey = (topicId: TopicId, difficulty: Difficulty) => `${topicId}:${difficulty}`;
+const getUserProgressStorageKey = (userId?: string | null) => `${FLASHCARD_PROGRESS_KEY}:${userId || 'guest'}`;
 
-const readProgress = (): TopicProgress => {
+const readProgress = (storageKey: string): TopicProgress => {
   try {
-    const rawProgress = window.localStorage.getItem(FLASHCARD_PROGRESS_KEY);
+    const rawProgress = window.localStorage.getItem(storageKey);
     return rawProgress ? (JSON.parse(rawProgress) as TopicProgress) : {};
   } catch {
     return {};
   }
 };
 
-const writeProgress = (progress: TopicProgress) => {
-  window.localStorage.setItem(FLASHCARD_PROGRESS_KEY, JSON.stringify(progress));
+const writeProgress = (storageKey: string, progress: TopicProgress) => {
+  window.localStorage.setItem(storageKey, JSON.stringify(progress));
 };
 
 const readLeaderboard = (): LeaderboardEntry[] => {
@@ -391,7 +401,8 @@ const SignAslVideo = ({ vidref }: { vidref: string }) => {
 
 export const Flashcards = () => {
   const { user } = useAuth();
-  const { cards, loading, error, refetch } = useFlashcards(10);
+  const { cards, loading, error } = useFlashcards(10);
+  const progressStorageKey = useMemo(() => getUserProgressStorageKey(user?.id), [user?.id]);
   const [selectedTopic, setSelectedTopic] = useState<TopicId | null>(null);
   const [selectedDifficulty, setSelectedDifficulty] = useState<Difficulty>('medium');
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -399,12 +410,14 @@ export const Flashcards = () => {
   const [selectedAnswer, setSelectedAnswer] = useState('');
   const [hasAnswered, setHasAnswered] = useState(false);
   const [isTimerEnabled, setIsTimerEnabled] = useState(false);
+  const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [timeLeft, setTimeLeft] = useState(CARD_TIME_LIMIT_SECONDS);
   const [timedOut, setTimedOut] = useState(false);
-  const [topicProgress, setTopicProgress] = useState<TopicProgress>(() => readProgress());
+  const [topicProgress, setTopicProgress] = useState<TopicProgress>(() => readProgress(progressStorageKey));
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>(() => readLeaderboard());
   const [lastAnswerPoints, setLastAnswerPoints] = useState(0);
   const [correctAnswers, setCorrectAnswers] = useState(0);
+  const [roundSummary, setRoundSummary] = useState<RoundSummary | null>(null);
 
   const curatedCardsByLevel = useMemo(
     () =>
@@ -454,20 +467,39 @@ export const Flashcards = () => {
   }, [currentCard, practiceCards]);
 
   useEffect(() => {
+    setTopicProgress(readProgress(progressStorageKey));
+    setSelectedTopic(null);
+    setCurrentIndex(0);
+    setScore(0);
+    setCorrectAnswers(0);
+    setSelectedAnswer('');
+    setHasAnswered(false);
+    setTimedOut(false);
+    setLastAnswerPoints(0);
+    setIsTimerRunning(false);
+    setTimeLeft(CARD_TIME_LIMIT_SECONDS);
+    setRoundSummary(null);
+  }, [progressStorageKey]);
+
+  useEffect(() => {
+    if (roundSummary) {
+      return;
+    }
+
     setSelectedAnswer('');
     setHasAnswered(false);
     setTimedOut(false);
     setLastAnswerPoints(0);
     setTimeLeft(CARD_TIME_LIMIT_SECONDS);
-  }, [currentCard?.id]);
+  }, [currentCard?.id, roundSummary]);
 
   useEffect(() => {
-    if (!isTimerEnabled) {
+    if (!isTimerEnabled || !isTimerRunning) {
       setTimeLeft(CARD_TIME_LIMIT_SECONDS);
       return;
     }
 
-    if (!currentCard || hasAnswered || !selectedTopic) {
+    if (!currentCard || hasAnswered || !selectedTopic || roundSummary) {
       return;
     }
 
@@ -486,7 +518,7 @@ export const Flashcards = () => {
           },
         };
 
-        writeProgress(nextProgress);
+        writeProgress(progressStorageKey, nextProgress);
         return nextProgress;
       });
       return;
@@ -497,13 +529,15 @@ export const Flashcards = () => {
     }, 1000);
 
     return () => window.clearTimeout(timeoutId);
-  }, [currentCard, hasAnswered, isTimerEnabled, selectedDifficulty, selectedTopic, timeLeft]);
+  }, [currentCard, hasAnswered, isTimerEnabled, isTimerRunning, progressStorageKey, roundSummary, selectedDifficulty, selectedTopic, timeLeft]);
 
   useEffect(() => {
     setCurrentIndex(0);
     setScore(0);
     setCorrectAnswers(0);
     setLastAnswerPoints(0);
+    setIsTimerRunning(false);
+    setRoundSummary(null);
   }, [selectedDifficulty, selectedTopic]);
 
   useEffect(() => {
@@ -520,16 +554,33 @@ export const Flashcards = () => {
     setHasAnswered(false);
     setTimedOut(false);
     setLastAnswerPoints(0);
+    setIsTimerRunning(false);
     setTimeLeft(CARD_TIME_LIMIT_SECONDS);
+    setRoundSummary(null);
   };
 
   const handleTimerToggle = () => {
-    setIsTimerEnabled((prev) => !prev);
+    setIsTimerEnabled((prev) => {
+      const nextEnabled = !prev;
+      if (!nextEnabled) {
+        setIsTimerRunning(false);
+      }
+      return nextEnabled;
+    });
     resetRound();
   };
 
+  const handleTimerStart = () => {
+    if (!currentCard || hasAnswered || !selectedTopic || roundSummary) {
+      return;
+    }
+
+    setTimeLeft(CARD_TIME_LIMIT_SECONDS);
+    setIsTimerRunning(true);
+  };
+
   const handleAnswer = (answer: string) => {
-    if (!currentCard || hasAnswered || !selectedTopic) {
+    if (!currentCard || hasAnswered || !selectedTopic || (isTimerEnabled && !isTimerRunning)) {
       return;
     }
 
@@ -549,7 +600,7 @@ export const Flashcards = () => {
         },
       };
 
-      writeProgress(nextProgress);
+      writeProgress(progressStorageKey, nextProgress);
       return nextProgress;
     });
 
@@ -568,10 +619,11 @@ export const Flashcards = () => {
 
     if (currentIndex === practiceCards.length - 1) {
       await flashcardApi.recordScore(score, practiceCards.length);
+      const topicLabel = topicOptions.find((topic) => topic.id === selectedTopic)?.label || selectedTopic;
+
       if (isTimerEnabled) {
         const userId = user?.id || 'guest';
         const userName = user?.full_name?.trim() || user?.email || 'Guest';
-        const topicLabel = topicOptions.find((topic) => topic.id === selectedTopic)?.label || selectedTopic;
         const entry: LeaderboardEntry = {
           id: `${Date.now()}-${userId}-${selectedTopic}-${selectedDifficulty}`,
           userId,
@@ -603,14 +655,19 @@ export const Flashcards = () => {
           },
         };
 
-        writeProgress(nextProgress);
+        writeProgress(progressStorageKey, nextProgress);
         return nextProgress;
       });
-      setScore(0);
-      setCorrectAnswers(0);
-      setLastAnswerPoints(0);
-      setCurrentIndex(0);
-      refetch();
+      setRoundSummary({
+        topicLabel,
+        difficulty: selectedDifficulty,
+        score,
+        correct: correctAnswers,
+        total: practiceCards.length,
+        isTimed: isTimerEnabled,
+      });
+      setIsTimerEnabled(false);
+      setIsTimerRunning(false);
       return;
     }
 
@@ -716,14 +773,24 @@ export const Flashcards = () => {
                       {isTimerEnabled && (
                         <span
                           className={`inline-flex items-center gap-1 rounded-2xl px-3 py-2 text-xs font-bold ${
-                            timeLeft <= 5 ? 'bg-rose-50 text-rose-700' : 'bg-emerald-50 text-emerald-700'
+                            isTimerRunning && timeLeft <= 5 ? 'bg-rose-50 text-rose-700' : 'bg-emerald-50 text-emerald-700'
                           }`}
                         >
                           <Clock className="size-3.5" />
-                          {timeLeft}s
+                          {isTimerRunning ? `${timeLeft}s` : 'Ready'}
                         </span>
                       )}
                     </>
+                  )}
+                  {isTimerEnabled && !isTimerRunning && currentCard && !hasAnswered && !roundSummary && (
+                    <button
+                      type="button"
+                      onClick={handleTimerStart}
+                      className="inline-flex h-9 items-center gap-2 rounded-2xl bg-emerald-600 px-3 text-sm font-semibold text-white transition hover:bg-emerald-700"
+                    >
+                      <Play className="size-4" />
+                      Start
+                    </button>
                   )}
                   <button
                     type="button"
@@ -775,7 +842,31 @@ export const Flashcards = () => {
                 <NoticeState tone="neutral" title="No cards in this level" message="Add ASL cards with a matching topic and difficulty to practice here." />
               )}
 
-              {currentCard && (
+              {roundSummary ? (
+                <div className="mx-auto grid max-w-5xl gap-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-emerald-950 shadow-sm lg:grid-cols-[1fr_auto] lg:items-center">
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-700">Round complete</p>
+                    <h3 className="mt-2 text-2xl font-black text-slate-950">Score saved</h3>
+                    <p className="mt-2 text-sm font-semibold text-emerald-900">
+                      {roundSummary.topicLabel} / {roundSummary.difficulty} / {roundSummary.correct}/{roundSummary.total} correct
+                    </p>
+                  </div>
+                  <div className="grid gap-3 sm:grid-cols-2 lg:min-w-72">
+                    <div className="rounded-xl bg-white/80 px-4 py-3">
+                      <p className="text-xs font-semibold text-emerald-700">{roundSummary.isTimed ? 'Points' : 'Score'}</p>
+                      <p className="mt-1 text-3xl font-black">{roundSummary.score}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={resetRound}
+                      className="inline-flex min-h-14 items-center justify-center gap-2 rounded-2xl bg-slate-950 px-5 text-sm font-semibold text-white transition hover:bg-emerald-700"
+                    >
+                      Practice again
+                      <ChevronRight className="size-4" />
+                    </button>
+                  </div>
+                </div>
+              ) : currentCard && (
                 <>
                   <div className="mb-3 h-1.5 overflow-hidden rounded-full bg-slate-100">
                     <div className="h-full rounded-full bg-emerald-500 transition-all" style={{ width: `${progress}%` }} />
@@ -784,7 +875,7 @@ export const Flashcards = () => {
                   {isTimerEnabled && (
                     <div
                       className={`mb-3 rounded-2xl border px-3 py-2 ${
-                        timeLeft <= 5
+                        isTimerRunning && timeLeft <= 5
                           ? 'border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-400 dark:bg-rose-950/70 dark:text-rose-100'
                           : 'border-emerald-200 bg-emerald-50 text-emerald-900 dark:border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-50'
                       }`}
@@ -792,16 +883,19 @@ export const Flashcards = () => {
                       <div className="flex items-center justify-between gap-3 text-xs font-bold">
                         <span className="inline-flex items-center gap-1">
                           <Clock className="size-3.5" />
-                          Time left: {timeLeft}s
+                          {isTimerRunning ? `Time left: ${timeLeft}s` : 'Timer ready'}
                         </span>
                         <span>{getTimerPoints(timeLeft)} pts available</span>
                       </div>
                       <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/70 dark:bg-slate-950">
                         <div
-                          className={`h-full rounded-full transition-all ${timeLeft <= 5 ? 'bg-rose-500' : 'bg-emerald-500'}`}
+                          className={`h-full rounded-full transition-all ${isTimerRunning && timeLeft <= 5 ? 'bg-rose-500' : 'bg-emerald-500'}`}
                           style={{ width: `${Math.round((timeLeft / CARD_TIME_LIMIT_SECONDS) * 100)}%` }}
                         />
                       </div>
+                      {!isTimerRunning && (
+                        <p className="mt-2 text-xs font-semibold opacity-80">Press Start when you are ready to begin the timer.</p>
+                      )}
                     </div>
                   )}
 
@@ -870,13 +964,13 @@ export const Flashcards = () => {
                           key={answer}
                           type="button"
                           onClick={() => handleAnswer(answer)}
-                          disabled={hasAnswered}
+                          disabled={hasAnswered || (isTimerEnabled && !isTimerRunning)}
                           className={`flex min-h-12 items-center justify-between rounded-2xl border px-4 py-3 text-left text-base font-semibold shadow-sm transition ${
                             showCorrect
                               ? 'border-emerald-400 bg-emerald-50 text-emerald-800 ring-2 ring-emerald-100'
                               : showWrong
                                 ? 'border-rose-400 bg-rose-50 text-rose-800 ring-2 ring-rose-100'
-                                : 'border-slate-200 bg-white text-slate-900 hover:border-emerald-200 hover:bg-emerald-50 disabled:hover:border-slate-200 disabled:hover:bg-white'
+                                : 'border-slate-200 bg-white text-slate-900 hover:border-emerald-200 hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:border-slate-200 disabled:hover:bg-white'
                           }`}
                         >
                           <span>{answer}</span>

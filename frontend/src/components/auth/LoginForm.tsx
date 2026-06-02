@@ -1,4 +1,4 @@
-import { useState, FormEvent } from 'react';
+import { useEffect, useRef, useState, FormEvent } from 'react';
 import { AlertCircle, Loader2, LockKeyhole, Mail } from 'lucide-react';
 import { useAuth } from '../../hooks';
 import { validators } from '../../utils';
@@ -7,11 +7,70 @@ interface LoginFormProps {
   onSuccess?: () => void;
 }
 
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
+const GOOGLE_BUTTON_LOCALE = 'en-US';
+const GOOGLE_SCRIPT_SRC = 'https://accounts.google.com/gsi/client?hl=en';
+
 export const LoginForm = ({ onSuccess }: LoginFormProps) => {
-  const { login, loading, error } = useAuth();
+  const { login, googleAuth, loading, error } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [validationError, setValidationError] = useState('');
+  const [googleReady, setGoogleReady] = useState(false);
+  const googleButtonRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!GOOGLE_CLIENT_ID) {
+      return;
+    }
+
+    const initializeGoogle = () => {
+      if (!window.google?.accounts?.id) {
+        return;
+      }
+
+      window.google.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback: async (response) => {
+          if (!response.credential) {
+            setValidationError('Could not read Google account information.');
+            return;
+          }
+
+          const success = await googleAuth(response.credential);
+          if (success) {
+            onSuccess?.();
+          }
+        },
+      });
+
+      if (googleButtonRef.current) {
+        googleButtonRef.current.innerHTML = '';
+        window.google.accounts.id.renderButton(googleButtonRef.current, {
+          theme: 'outline',
+          size: 'large',
+          width: '100%',
+          text: 'signin_with',
+          shape: 'pill',
+          locale: GOOGLE_BUTTON_LOCALE,
+        });
+      }
+
+      setGoogleReady(true);
+    };
+
+    if (window.google?.accounts?.id) {
+      initializeGoogle();
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = GOOGLE_SCRIPT_SRC;
+    script.async = true;
+    script.defer = true;
+    script.onload = initializeGoogle;
+    document.head.appendChild(script);
+  }, [googleAuth, onSuccess]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -90,6 +149,22 @@ export const LoginForm = ({ onSuccess }: LoginFormProps) => {
         {loading && <Loader2 className="size-4 animate-spin" />}
         {loading ? 'Logging in...' : 'Log in'}
       </button>
+
+      <div className="flex items-center gap-3">
+        <div className="h-px flex-1 bg-slate-200" />
+        <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">or</span>
+        <div className="h-px flex-1 bg-slate-200" />
+      </div>
+
+      {GOOGLE_CLIENT_ID ? (
+        <div className={loading || !googleReady ? 'pointer-events-none opacity-60' : ''}>
+          <div ref={googleButtonRef} className="flex min-h-[44px] justify-center" />
+        </div>
+      ) : (
+        <p className="text-center text-xs leading-5 text-slate-500">
+          Configure VITE_GOOGLE_CLIENT_ID and GOOGLE_CLIENT_ID to enable Google sign in.
+        </p>
+      )}
     </form>
   );
 };

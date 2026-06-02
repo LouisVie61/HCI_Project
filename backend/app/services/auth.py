@@ -52,14 +52,17 @@ class AuthService:
                 email=email,
                 password=uuid4().hex + uuid4().hex,
                 full_name=full_name,
+                auth_provider="google",
             )
             if avatar_url:
                 user.avatar_url = avatar_url
                 self.db.add(user)
                 self.db.commit()
                 self.db.refresh(user)
-        elif not user.full_name and full_name:
-            user.full_name = full_name
+        else:
+            user.auth_provider = "google"
+            if not user.full_name and full_name:
+                user.full_name = full_name
             if avatar_url and not user.avatar_url:
                 user.avatar_url = avatar_url
             self.db.add(user)
@@ -130,6 +133,9 @@ class AuthService:
     def update_profile(self, current_user, user_update: UserUpdate) -> UserResponse:
         """Update current user's profile"""
         if user_update.email:
+            if current_user.auth_provider == "google" and user_update.email != current_user.email:
+                raise ValueError("Google account email cannot be changed")
+
             existing_user = self.user_repo.get_by_email(user_update.email)
             if existing_user and existing_user.id != current_user.id:
                 raise ValueError("Email already registered")

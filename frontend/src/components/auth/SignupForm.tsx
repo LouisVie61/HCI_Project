@@ -9,6 +9,8 @@ interface SignupFormProps {
 }
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
+const GOOGLE_BUTTON_LOCALE = 'en-US';
+const GOOGLE_SCRIPT_SRC = 'https://accounts.google.com/gsi/client?hl=en';
 
 export const SignupForm = ({ onSuccess, onSwitchToLogin }: SignupFormProps) => {
   const { signup, googleAuth, loading, error } = useAuth();
@@ -54,6 +56,7 @@ export const SignupForm = ({ onSuccess, onSwitchToLogin }: SignupFormProps) => {
           width: '100%',
           text: 'signup_with',
           shape: 'pill',
+          locale: GOOGLE_BUTTON_LOCALE,
         });
       }
       setGoogleReady(true);
@@ -65,7 +68,7 @@ export const SignupForm = ({ onSuccess, onSwitchToLogin }: SignupFormProps) => {
     }
 
     const script = document.createElement('script');
-    script.src = 'https://accounts.google.com/gsi/client';
+    script.src = GOOGLE_SCRIPT_SRC;
     script.async = true;
     script.defer = true;
     script.onload = initializeGoogle;
@@ -235,7 +238,7 @@ export const SignupForm = ({ onSuccess, onSwitchToLogin }: SignupFormProps) => {
         </div>
       ) : (
         <p className="text-center text-xs leading-5 text-slate-500">
-          Configure VITE_GOOGLE_CLIENT_ID and GOOGLE_CLIENT_ID to enable Gmail sign up.
+          Configure VITE_GOOGLE_CLIENT_ID and GOOGLE_CLIENT_ID to enable Google sign up.
         </p>
       )}
     </form>
