@@ -12,7 +12,7 @@ const getAvatarSrc = (avatarUrl?: string | null) => {
 };
 
 const SIDEBAR_COLLAPSED_KEY = 'dashboard_sidebar_collapsed';
-const BRAND_LOGO_SRC = '/SignBride.png';
+const BRAND_LOGO_SRC = '/SignBridge.png';
 
 export const DashboardLayout = () => {
   const { user, logout } = useAuth();
