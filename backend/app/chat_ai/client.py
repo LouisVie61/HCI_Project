@@ -92,7 +92,7 @@ class OpenRouterChatClient:
     def chat(
         self,
         user_message: str,
-        system_prompt: str = "You are a concise and helpful AI assistant for a sign language learning project.",
+        system_prompt: str = "You are a concise and helpful AI assistant for a sign language learning project. Always reply in English unless the user explicitly requests another language.",
     ) -> dict[str, Any]:
         return self.create_chat_completion(
             [

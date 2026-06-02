@@ -17,14 +17,14 @@ def main() -> int:
         sys.stdout.reconfigure(encoding="utf-8")
 
     if not settings.OPENROUTER_API_KEY:
-        print("OPENROUTER_API_KEY chưa được cấu hình.")
-        print("Thêm key vào file: backend/app/.env")
-        print("Ví dụ: OPENROUTER_API_KEY=sk-or-v1-...")
+        print("OPENROUTER_API_KEY is not configured.")
+        print("Add the key to: backend/app/.env")
+        print("Example: OPENROUTER_API_KEY=sk-or-v1-...")
         return 1
 
     client = OpenRouterChatClient()
     result = client.chat(
-        "Hãy giới thiệu ngắn gọn về bản thân bằng tiếng Việt trong 2 câu."
+        "Introduce yourself briefly in English in two sentences."
     )
 
     print(f"Model: {result['model']}")
